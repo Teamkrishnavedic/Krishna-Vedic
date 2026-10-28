@@ -130,28 +130,6 @@ export default function ShopPage() {
     return result;
   }, [allProducts, searchQuery, activeCategory]);
 
-  // 5. Dynamic Category Sections for the Showcase View
-  const categorySections = useMemo(() => {
-    return dbCategories
-      .map((cat) => {
-        const prods = allProducts.filter(
-          (p) =>
-            p.categoryId === cat.id ||
-            p.category?.slug === cat.slug ||
-            p.category?.id === cat.id
-        );
-        return {
-          id: cat.id,
-          categoryName: cat.name,
-          slug: cat.slug,
-          description: cat.description,
-          icon: getCategoryIcon(cat.name, cat.slug),
-          products: prods,
-        };
-      })
-      .filter((sec) => sec.products.length > 0);
-  }, [dbCategories, allProducts]);
-
   const selectCategory = (slug: string) => {
     setActiveCategory(slug);
     if (slug === 'all') {
@@ -215,118 +193,40 @@ export default function ShopPage() {
         </div>
       </nav>
 
-      {/* ─── 2. Main Product Showcase & Grid (Zero Extra Headings) ─────────── */}
-      <main className="max-w-7xl mx-auto w-full px-4 md:px-8 py-6 space-y-12">
+      {/* ─── 2. Direct Products Grid (Clean Pure Products Only) ──────────── */}
+      <main className="max-w-7xl mx-auto w-full px-4 md:px-8 py-6">
         {isProductsLoading || isCategoriesLoading ? (
           <div className="py-24 text-center text-[#7d7567] font-serif">
             <span className="spinner mb-2 inline-block" />
-            <p>Loading fresh products...</p>
+            <p>Loading authentic products...</p>
           </div>
-        ) : searchQuery.trim() ? (
-          /* ─── Search Results View ────────────────────────────────────────── */
-          <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-[#e5e2da] pb-3">
-              <span className="font-serif text-lg text-[#2d2a26] font-bold">
-                Results for &ldquo;{searchQuery}&rdquo;
-              </span>
-              <span className="text-xs text-[#7d7567]">
-                {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
-              </span>
-            </div>
-
-            {filteredProducts.length === 0 ? (
-              <div className="py-20 text-center space-y-3">
-                <p className="font-serif text-base text-[#7d7567]">No products matched your search.</p>
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="px-5 py-2 rounded-full bg-[#6e3418] text-[#fafbf5] text-xs font-semibold uppercase tracking-wider cursor-pointer"
-                >
-                  Clear Search
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ) : activeCategory === 'all' ? (
-          /* ─── Category-by-Category Showcase View ─────────────────────────── */
-          <div className="space-y-12">
-            {categorySections.length === 0 ? (
-              <div className="py-20 text-center text-[#7d7567] font-serif">
-                No products found in the catalog.
-              </div>
-            ) : (
-              categorySections.map((sec) => (
-                <section key={sec.slug} className="space-y-4">
-                  {/* Category Section Header */}
-                  <div className="flex items-center justify-between border-b border-[#e5e2da] pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-lg text-[#6e3418]">
-                        {sec.icon}
-                      </span>
-                      <h2 className="font-serif text-xl sm:text-2xl text-[#2d2a26] font-bold">
-                        {sec.categoryName}
-                      </h2>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => selectCategory(sec.slug)}
-                      className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#3f674f] hover:text-[#2d4d3a] hover:underline cursor-pointer"
-                    >
-                      <span>View All ({sec.products.length})</span>
-                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
-                  </div>
-
-                  {/* Products Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {sec.products.slice(0, 4).map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))
-            )}
+        ) : filteredProducts.length === 0 ? (
+          <div className="py-20 text-center space-y-3">
+            <p className="font-serif text-base text-[#7d7567]">
+              {searchQuery.trim()
+                ? `No products matched "${searchQuery}".`
+                : 'No products in this category yet.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                selectCategory('all');
+              }}
+              className="px-5 py-2 rounded-full bg-[#6e3418] text-[#fafbf5] text-xs font-semibold uppercase tracking-wider cursor-pointer"
+            >
+              View All Products
+            </button>
           </div>
         ) : (
-          /* ─── Single Selected Category View ──────────────────────────────── */
-          <div className="space-y-6">
-            {filteredProducts.length === 0 ? (
-              <div className="py-20 text-center space-y-3">
-                <p className="font-serif text-base text-[#7d7567]">No products in this category yet.</p>
-                <button
-                  type="button"
-                  onClick={() => selectCategory('all')}
-                  className="px-5 py-2 rounded-full bg-[#6e3418] text-[#fafbf5] text-xs font-semibold uppercase tracking-wider cursor-pointer"
-                >
-                  View All Products
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
-                  />
-                ))}
-              </div>
-            )}
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
+              />
+            ))}
           </div>
         )}
       </main>
