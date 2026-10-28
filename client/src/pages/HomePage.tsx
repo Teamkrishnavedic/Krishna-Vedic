@@ -541,7 +541,7 @@ export default function HomePage() {
           </AnimatedSection>
 
           {isBestsellersLoading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="aspect-[3/4] rounded-3xl bg-[#f4f4ec] animate-pulse" />
               ))}
@@ -549,7 +549,7 @@ export default function HomePage() {
           ) : bestsellers.length === 0 ? (
             <p className="py-16 text-center text-[#7d7567] font-serif">No products found.</p>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
               {bestsellers.map((product: any, i: number) => (
                 <AnimatedSection key={product.id} delay={i * 0.1}>
                   <ProductCard

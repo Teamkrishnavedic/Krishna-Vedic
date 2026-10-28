@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, Check } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 
 interface Variant {
@@ -35,7 +36,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [selectedVariantId, setSelectedVariantId] = useState<string>(
     variants[0]?.id || ''
   );
-  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
 
   const currentVariant =
     variants.find((v) => v.id === selectedVariantId) || variants[0] || null;
@@ -46,7 +47,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     ? (currentVariant.stock ?? currentVariant.inventoryQty ?? 1) <= 0
     : false;
 
-  // Safe image URL resolver with authentic bull-driven oil & spice fallbacks
+  // Safe image URL resolver with authentic artisanal fallbacks
   const getImageUrl = () => {
     const first = product.images?.[0];
     if (typeof first === 'string' && first.startsWith('http')) return first;
@@ -97,197 +98,135 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
   const imageUrl = getImageUrl();
 
-  const originTag =
-    product.name.toLowerCase().includes('mustard')
-      ? 'Rajasthan Ghani'
-      : product.name.toLowerCase().includes('turmeric')
-      ? 'Salem Origin'
-      : product.name.toLowerCase().includes('chilli')
-      ? 'Guntur & Byadgi'
-      : product.name.toLowerCase().includes('sesame')
-      ? 'Tamil Chekku'
-      : product.name.toLowerCase().includes('coconut')
-      ? 'Kerala Palm'
-      : product.name.toLowerCase().includes('cumin')
-      ? 'Nagaur Desert'
-      : product.name.toLowerCase().includes('ghee')
-      ? 'Gir Cow Bilona'
-      : 'Vedic Provenance';
-
-  const extractionTag =
-    product.name.toLowerCase().includes('oil')
-      ? 'Bull-Driven Wood Ghani'
-      : product.name.toLowerCase().includes('ghee')
-      ? 'Hand-Churned Bilona'
-      : product.name.toLowerCase().includes('masala')
-      ? 'Stone-Pounded Blend'
-      : 'Cold Stone Ground';
-
-  const labSpec =
-    product.name.toLowerCase().includes('oil')
-      ? 'FFA < 0.65% • Raw'
-      : product.name.toLowerCase().includes('ghee')
-      ? 'A2 Beta-Casein Certified'
-      : product.name.toLowerCase().includes('turmeric')
-      ? 'Curcumin 5.2% Assayed'
-      : product.name.toLowerCase().includes('chilli')
-      ? 'Pure Capsaicin • Zero Dyes'
-      : 'NABL Lab Certified';
-
-  const handleAddToCartClick = (e: React.MouseEvent) => {
+  const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (currentVariant && onAddToCart) {
-      onAddToCart(currentVariant.id, quantity);
+    if (currentVariant && onAddToCart && !isOutOfStock) {
+      onAddToCart(currentVariant.id, 1);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 1200);
     }
   };
 
   return (
-    <article className="bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418] transition-all duration-200">
-      {/* Product Visual Header with Badges */}
-      <div className="relative overflow-hidden aspect-[4/3] bg-[#f4f4ec] rounded-t-2xl">
+    <article className="group bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418]/40 hover:shadow-md transition-all duration-300">
+      {/* ─── 1. Product Image: 1:1 Square, Clean & Spacious ─────────── */}
+      <div className="relative aspect-square w-full overflow-hidden bg-[#f4f4ec]">
         <Link to={`/products/${product.slug}`} className="block w-full h-full">
           <img
             src={imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
-              // Fallback if network fails
               (e.target as HTMLImageElement).src =
                 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
             }}
           />
         </Link>
+
+        {/* Single subtle tag: Bestseller or Sale only — never overlapping tags */}
         {product.unitsSold && product.unitsSold > 0 ? (
-          <span className="absolute top-3 left-3 bg-[#6e3418] text-[#fafbf5] text-[11px] uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-sm">
-            Bestseller • {product.unitsSold} sold
+          <span className="absolute top-2.5 left-2.5 bg-[#6e3418] text-[#fafbf5] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+            Bestseller
           </span>
-        ) : (
-          <span className="absolute top-3 left-3 bg-[#3f674f] text-[#fafbf5] font-label-sm text-[11px] uppercase tracking-wider px-3 py-1 rounded-full font-semibold">
-            {product.name.toLowerCase().includes('oil')
-              ? 'Wood-Pressed'
-              : product.name.toLowerCase().includes('masala')
-              ? 'Heritage Blend'
-              : 'Stone-Ground'}
+        ) : compareAtPrice && compareAtPrice > currentPrice ? (
+          <span className="absolute top-2.5 left-2.5 bg-[#3f674f] text-[#fafbf5] text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-xs">
+            Save {Math.round(((compareAtPrice - currentPrice) / compareAtPrice) * 100)}%
           </span>
-        )}
-        <span className="absolute top-3 right-3 bg-[#fafbf5]/95 text-[#6e3418] font-label-sm text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#e5e2da]">
-          {originTag}
-        </span>
+        ) : null}
       </div>
 
-      {/* Card Body */}
-      <div className="p-5 flex flex-col flex-grow justify-between gap-3.5">
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-[#7d7567] text-xs">
-            <span className="font-semibold text-[#6e3418] uppercase tracking-wider text-[11px]">
-              {extractionTag}
-            </span>
-            <span className="text-[11px] text-[#4a463e] font-medium bg-[#f4f4ec] px-2.5 py-0.5 rounded-full border border-[#e5e2da]">
-              {labSpec}
-            </span>
-          </div>
+      {/* ─── 2. Product Details ─────────────────────────────────────── */}
+      <div className="p-3 sm:p-4 flex flex-col flex-grow justify-between gap-2.5">
+        <div>
+          {/* Category subtitle */}
+          <p className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#7d7567] truncate">
+            {product.category?.name || 'Artisan Pantry'}
+          </p>
 
-          <h3 className="font-serif text-base font-bold text-[#2d2a26] hover:text-[#6e3418] transition-colors leading-snug line-clamp-1">
+          {/* Product Title: 2 lines max, legible, never awkwardly truncated */}
+          <h3 className="font-serif text-sm sm:text-base font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors leading-snug line-clamp-2 mt-1 min-h-[2.5rem]">
             <Link to={`/products/${product.slug}`}>
               {product.name}
             </Link>
           </h3>
-
-          <p className="text-xs text-[#7d7567] line-clamp-2 leading-relaxed">
-            {product.shortDescription ||
-              product.description ||
-              'Slowly extracted in traditional Vagai wood ghanis below 38°C to retain vital living enzymes, raw aroma, and natural antioxidants.'}
-          </p>
         </div>
 
-        {/* Size selector pill row with smooth curves */}
-        {variants.length > 0 && (
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-[#7d7567] uppercase tracking-wider">
-              <span>Select Size:</span>
-              <span className="text-[#6e3418] font-bold">
-                {currentVariant?.name || currentVariant?.title}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5 text-xs">
-              {variants.map((v) => {
-                const isSelected = v.id === currentVariant?.id;
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => setSelectedVariantId(v.id)}
-                    className={`py-1 px-3 text-center transition-all cursor-pointer rounded-full text-xs border ${
-                      isSelected
-                        ? 'bg-[#6e3418] text-[#fafbf5] border-[#6e3418] font-semibold'
-                        : 'bg-[#f4f4ec] text-[#4a463e] border-[#e5e2da] hover:bg-[#e9e9e0]'
-                    }`}
-                  >
-                    {v.name || v.title}
-                  </button>
-                );
-              })}
-            </div>
+        {/* ─── 3. Variant Selector (if more than 1 size) ───────────── */}
+        {variants.length > 1 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {variants.map((v) => {
+              const isSelected = v.id === currentVariant?.id;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelectedVariantId(v.id);
+                  }}
+                  className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full border transition-all cursor-pointer whitespace-nowrap font-medium ${
+                    isSelected
+                      ? 'bg-[#6e3418] text-[#fafbf5] border-[#6e3418] font-semibold'
+                      : 'bg-[#f4f4ec] text-[#52443c] border-[#e5e2da] hover:border-[#6e3418]/40'
+                  }`}
+                >
+                  {v.name || v.title}
+                </button>
+              );
+            })}
           </div>
         )}
 
-        {/* Pricing & Add to Cart */}
-        <div className="pt-3 flex flex-col gap-2.5 border-t border-[#e5e2da]">
-          <div className="flex items-baseline justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-lg text-[#2d2a26] font-bold">
+        {/* ─── 4. Price & Action ───────────────────────────────────── */}
+        <div className="pt-2 border-t border-[#e5e2da] flex items-center justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="font-sans text-base sm:text-lg font-bold text-[#2d2a26] tracking-tight">
                 {formatPrice(currentPrice)}
               </span>
               {compareAtPrice && compareAtPrice > currentPrice && (
-                <span className="text-xs text-[#7d7567] line-through">
+                <span className="font-sans text-xs text-[#7d7567] line-through">
                   {formatPrice(compareAtPrice)}
                 </span>
               )}
             </div>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                isOutOfStock ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-[#eef5f1] text-[#3f674f] border border-[#3f674f]/30'
-              }`}
-            >
-              {isOutOfStock ? 'Out of Stock' : 'Fresh Harvest'}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Quantity stepper with curved edges */}
-            <div className="flex items-center bg-[#f4f4ec] border border-[#e5e2da] rounded-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="w-8 h-9 flex items-center justify-center text-[#2d2a26] hover:bg-[#e5e2da] font-bold text-sm cursor-pointer"
-              >
-                −
-              </button>
-              <span className="w-8 text-center text-xs font-semibold text-[#2d2a26]">
-                {quantity}
+            {variants.length === 1 && (
+              <span className="text-[10px] text-[#7d7567] font-medium truncate">
+                {variants[0].name || variants[0].title}
               </span>
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => q + 1)}
-                className="w-8 h-9 flex items-center justify-center text-[#2d2a26] hover:bg-[#e5e2da] font-bold text-sm cursor-pointer"
-              >
-                +
-              </button>
-            </div>
-
-            {/* Add to Cart button with curved edges */}
-            <button
-              type="button"
-              disabled={isOutOfStock}
-              onClick={handleAddToCartClick}
-              className="flex-grow bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] py-2 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 h-9"
-            >
-              <span className="material-symbols-outlined text-base">shopping_bag</span>
-              Add to Basket
-            </button>
+            )}
           </div>
+
+          {/* Quick Add Button */}
+          <button
+            type="button"
+            disabled={isOutOfStock}
+            onClick={handleAdd}
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 ${
+              isOutOfStock
+                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                : added
+                ? 'bg-[#3f674f] text-[#fafbf5]'
+                : 'bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] shadow-xs'
+            }`}
+          >
+            {isOutOfStock ? (
+              <span className="text-[10px]">Sold Out</span>
+            ) : added ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Added</span>
+              </>
+            ) : (
+              <>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </article>
