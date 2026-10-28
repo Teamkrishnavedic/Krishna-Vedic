@@ -136,6 +136,11 @@ export default function Header() {
                 <span className="max-w-[55px] sm:max-w-[90px] truncate">
                   {user?.name?.split(' ')[0] || 'Account'}
                 </span>
+                {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                  <span className="text-[9px] bg-amber-400 text-[#2d2a26] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
+                    Admin
+                  </span>
+                )}
                 {userDropdownOpen ? (
                   <ChevronUp className="w-3.5 h-3.5" />
                 ) : (
@@ -154,6 +159,16 @@ export default function Header() {
                       <p className="font-bold text-[#2d2a26] truncate">{user?.name}</p>
                       <p className="text-[#7d7567] text-[11px] truncate">{user?.email}</p>
                     </div>
+                    {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] font-bold border-b border-[#e5e2da] transition-colors"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
                     <Link
                       to="/account"
                       onClick={() => setUserDropdownOpen(false)}

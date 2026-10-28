@@ -16,6 +16,17 @@ function getGoogleOAuthClient() {
   return new OAuth2Client(clientId);
 }
 
+function getAdminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function isEmailAdmin(email: string): boolean {
+  return getAdminEmails().includes(email.toLowerCase());
+}
+
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -51,11 +62,19 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const data = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email: data.email } });
+    let user = await prisma.user.findUnique({ where: { email: data.email } });
     if (!user || !user.isActive) throw new AppError(401, 'Invalid email or password');
 
     const valid = await bcrypt.compare(data.password, user.passwordHash);
     if (!valid) throw new AppError(401, 'Invalid email or password');
+
+    // Auto-promote designated admin emails if not already admin
+    if (isEmailAdmin(user.email) && user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN') {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'SUPER_ADMIN' },
+      });
+    }
 
     // Merge guest cart if any
     if (req.session.guestId) {
@@ -134,6 +153,7 @@ router.post('/google', async (req: Request, res: Response, next: NextFunction) =
     const email = payload.email.toLowerCase();
     const name = payload.name || payload.given_name || email.split('@')[0];
     const avatarUrl = payload.picture;
+    const isDesignatedAdmin = isEmailAdmin(email);
 
     // Check if user exists by googleId or email
     let user = await prisma.user.findFirst({
@@ -153,6 +173,9 @@ router.post('/google', async (req: Request, res: Response, next: NextFunction) =
       const updateData: any = {};
       if (!user.googleId) updateData.googleId = googleId;
       if (!user.avatarUrl && avatarUrl) updateData.avatarUrl = avatarUrl;
+      if (isDesignatedAdmin && user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN') {
+        updateData.role = 'SUPER_ADMIN';
+      }
 
       if (Object.keys(updateData).length > 0) {
         user = await prisma.user.update({
@@ -161,14 +184,14 @@ router.post('/google', async (req: Request, res: Response, next: NextFunction) =
         });
       }
     } else {
-      // Create new customer account with verified Google identity
+      // Create new account with verified Google identity
       user = await prisma.user.create({
         data: {
           name,
           email,
           googleId,
           avatarUrl,
-          role: 'CUSTOMER',
+          role: isDesignatedAdmin ? 'SUPER_ADMIN' : 'CUSTOMER',
           isActive: true,
         },
       });
@@ -235,11 +258,22 @@ router.post('/logout', (req: Request, res: Response, next: NextFunction) => {
 // GET /api/auth/me
 router.get('/me', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: req.session.userId },
       select: { id: true, name: true, email: true, phone: true, role: true, avatarUrl: true, createdAt: true },
     });
     if (!user) throw new AppError(404, 'User not found');
+
+    // Auto-sync admin role if email matches ADMIN_EMAILS
+    if (isEmailAdmin(user.email) && user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN') {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { role: 'SUPER_ADMIN' },
+        select: { id: true, name: true, email: true, phone: true, role: true, avatarUrl: true, createdAt: true },
+      });
+      req.session.userRole = 'SUPER_ADMIN';
+    }
+
     res.json({ user });
   } catch (err) {
     next(err);
