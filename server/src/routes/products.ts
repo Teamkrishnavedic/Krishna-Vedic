@@ -1,0 +1,129 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { prisma } from '../lib/prisma';
+import { AppError } from '../middleware/errorHandler';
+
+const router = Router();
+
+const variantSelect = {
+  id: true,
+  name: true,
+  sku: true,
+  price: true,
+  compareAtPrice: true,
+  stock: true,
+  lowStockThreshold: true,
+  weight: true,
+  weightUnit: true,
+  isDefault: true,
+  sortOrder: true,
+};
+
+const productSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  description: true,
+  shortDescription: true,
+  sku: true,
+  status: true,
+  isFeatured: true,
+  taxRate: true,
+  tags: true,
+  ingredients: true,
+  storageInstructions: true,
+  createdAt: true,
+  category: { select: { id: true, name: true, slug: true } },
+  variants: { select: variantSelect, orderBy: { sortOrder: 'asc' as const } },
+  images: {
+    select: { id: true, url: true, altText: true, sortOrder: true },
+    orderBy: { sortOrder: 'asc' as const },
+  },
+};
+
+// GET /api/products
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      category,
+      featured,
+      search,
+      page = '1',
+      limit = '20',
+      sort = 'createdAt',
+      order = 'desc',
+    } = req.query;
+
+    const take = Math.min(parseInt(limit as string, 10), 100);
+    const skip = (parseInt(page as string, 10) - 1) * take;
+
+    const where: any = { status: 'PUBLISHED' };
+
+    if (category) {
+      const cat = await prisma.category.findUnique({ where: { slug: category as string } });
+      if (cat) where.categoryId = cat.id;
+    }
+
+    if (featured === 'true') where.isFeatured = true;
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search as string } },
+        { description: { contains: search as string } },
+        { tags: { contains: search as string } },
+      ];
+    }
+
+    let orderBy: any = { createdAt: 'desc' };
+    if (sort === 'featured') {
+      orderBy = { isFeatured: 'desc' };
+    } else if (sort === 'name') {
+      orderBy = { name: order === 'desc' ? 'desc' : 'asc' };
+    } else if (sort === 'createdAt') {
+      orderBy = { createdAt: order === 'asc' ? 'asc' : 'desc' };
+    } else {
+      orderBy = { isFeatured: 'desc' };
+    }
+
+    const [total, products] = await Promise.all([
+      prisma.product.count({ where }),
+      prisma.product.findMany({
+        where,
+        select: productSelect,
+        orderBy,
+        take,
+        skip,
+      }),
+    ]);
+
+    res.json({
+      products,
+      pagination: {
+        total,
+        page: parseInt(page as string, 10),
+        limit: take,
+        pages: Math.ceil(total / take),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/products/:slug
+router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { slug: req.params.slug },
+      select: productSelect,
+    });
+
+    if (!product || product.status === 'ARCHIVED') throw new AppError(404, 'Product not found');
+    if (product.status === 'DRAFT') throw new AppError(404, 'Product not found');
+
+    res.json({ product });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;
