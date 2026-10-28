@@ -5,11 +5,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
 import BrandLogo from '@/components/BrandLogo';
-import { STORE_CONFIG } from '@/lib/storeConfig';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const { cart, itemCount, openCart } = useCart();
+  const { storeName, supportPhone, announcementText, getWhatsappUrl } = useStoreSettings();
   const navigate = useNavigate();
 
   const [searchOpen, setSearchOpen] = useState(false);
@@ -45,16 +46,21 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#fafbf5] border-b border-[#e5e2da] shadow-xs transition-all">
       {/* Top Ethos / Assistance Ticker */}
       <div className="bg-[#3f674f] text-[#fafbf5] px-3 sm:px-4 text-center py-1 flex items-center justify-between text-[11px] sm:text-xs font-medium">
-        <div className="hidden md:flex items-center gap-1.5 text-xs text-[#fafbf5]/90">
+        <a
+          href={getWhatsappUrl('Hello Krishna Vedic, I need helpdesk assistance.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden md:flex items-center gap-1.5 text-xs text-[#fafbf5]/90 hover:text-white transition-colors cursor-pointer"
+        >
           <Phone className="w-3.5 h-3.5" />
-          <span>Helpdesk: {STORE_CONFIG.phone}</span>
-        </div>
+          <span>Helpdesk / WhatsApp: {supportPhone}</span>
+        </a>
         <div className="mx-auto text-center tracking-wide truncate max-w-full font-medium">
-          अब खाएंगे दादी-दादी के ज़माने का तेल और मसाले
+          {announcementText}
         </div>
         <div className="hidden md:flex items-center gap-1 text-xs text-[#fafbf5]/90 font-medium">
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Krishna Vedic</span>
+          <span>{storeName}</span>
         </div>
       </div>
 

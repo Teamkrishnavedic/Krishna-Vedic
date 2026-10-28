@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Phone, Mail, MessageCircle } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
-import { STORE_CONFIG } from '@/lib/storeConfig';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 import BrandLogo from '@/components/BrandLogo';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
   const { toast } = useToast();
+  const { supportPhone, supportEmail, millAddress, getWhatsappUrl } = useStoreSettings();
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,13 +118,23 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
               <li className="hover:text-primary transition-colors">
-                <a href={`tel:${STORE_CONFIG.phone}`} className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm">call</span> {STORE_CONFIG.phone}
+                <a
+                  href={getWhatsappUrl('Hello Krishna Vedic, I would like to inquire about customer support.')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-[#3f674f] font-semibold"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" /> WhatsApp Support
                 </a>
               </li>
               <li className="hover:text-primary transition-colors">
-                <a href={`mailto:${STORE_CONFIG.email}`} className="flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-sm">mail</span> {STORE_CONFIG.email}
+                <a href={`tel:${supportPhone}`} className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5" /> {supportPhone}
+                </a>
+              </li>
+              <li className="hover:text-primary transition-colors">
+                <a href={`mailto:${supportEmail}`} className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5" /> {supportEmail}
                 </a>
               </li>
               <li className="hover:text-primary transition-colors">
@@ -132,7 +144,7 @@ export default function Footer() {
                 <Link to="/returns">Returns &amp; Replacement</Link>
               </li>
               <li className="text-[11px] text-outline pt-1 leading-snug">
-                {STORE_CONFIG.address}
+                {millAddress}
               </li>
             </ul>
           </div>
