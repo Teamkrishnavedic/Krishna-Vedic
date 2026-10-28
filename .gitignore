@@ -24,3 +24,6 @@ prisma/migrations/
 *.tsbuildinfo
 scratch/
 
+
+cloudflared.exe
+
