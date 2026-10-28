@@ -179,7 +179,7 @@ export default function HomePage() {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200">
-                Jaipur Heritage Mill · Since 1940s
+                Krishna Vedic · Est. 2020
               </span>
             </motion.div>
 
@@ -608,7 +608,7 @@ export default function HomePage() {
                     <p className="font-serif text-white text-sm font-semibold">
                       The Krishnavedic Family
                     </p>
-                    <p className="text-[11px] text-white/50">Jaipur Heritage Mill · Est. 1940s</p>
+                    <p className="text-[11px] text-white/50">Krishna Vedic · Est. 2020</p>
                   </div>
                 </div>
               </div>

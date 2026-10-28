@@ -48,12 +48,12 @@ export default function Header() {
           <span className="material-symbols-outlined text-sm">support_agent</span>
           <span>Helpdesk: {STORE_CONFIG.phone}</span>
         </div>
-        <div className="mx-auto text-center tracking-wider truncate max-w-full">
-          Free shipping on orders above ₹799 • Bull-Ghani &amp; Wood-Pressed Purity
+        <div className="mx-auto text-center tracking-wide truncate max-w-full font-medium">
+          अब खाएंगे दादी-दादी के ज़माने का तेल और मसाले 🫙
         </div>
         <div className="hidden md:flex items-center gap-1 text-xs text-[#fafbf5]/90 font-medium">
           <span className="material-symbols-outlined text-sm">verified</span>
-          <span>Jaipur Heritage Mill</span>
+          <span>Krishna Vedic</span>
         </div>
       </div>
 
