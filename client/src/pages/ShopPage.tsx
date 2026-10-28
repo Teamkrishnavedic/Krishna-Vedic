@@ -28,6 +28,7 @@ export default function ShopPage() {
   const [searchQuery, setSearchQuery] = useState<string>(
     searchParams.get('q') || ''
   );
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
   // 1. Fetch all published products from API
   const { data: productsData, isLoading: isProductsLoading } = useQuery({
@@ -142,9 +143,9 @@ export default function ShopPage() {
 
   return (
     <div className="flex flex-col w-full bg-[#fafbf5] text-[#2d2a26] min-h-screen pb-24">
-      {/* ─── 1. Clean Products Navbar + Small Search (Right under Main Header) ── */}
-      <nav className="sticky top-[80px] sm:top-[90px] md:top-[104px] z-30 w-full bg-[#fafbf5]/95 backdrop-blur-md border-b border-[#e5e2da] py-2 px-3 sm:px-4 md:px-8 shadow-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      {/* ─── 1. Clean Products Navbar + Sleek Compact Search (Directly under Header) ── */}
+      <nav className="sticky top-[80px] sm:top-[88px] md:top-[104px] z-30 w-full bg-[#fafbf5]/95 backdrop-blur-md border-b border-[#e5e2da] py-2 px-3 sm:px-4 md:px-8 shadow-xs">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
           {/* Scrollable Category Pills from Database */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-grow py-0.5">
             {categoryTabs.map((tab) => {
@@ -153,7 +154,7 @@ export default function ShopPage() {
                 <button
                   key={tab.slug}
                   onClick={() => selectCategory(tab.slug)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap uppercase tracking-wider transition-all cursor-pointer border ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap uppercase tracking-wider transition-all cursor-pointer border ${
                     isSelected
                       ? 'bg-[#6e3418] text-[#fafbf5] border-[#6e3418] shadow-xs'
                       : 'bg-[#f4f4ec] text-[#2d2a26] border-[#e5e2da] hover:bg-[#e8e8dc] hover:text-[#6e3418]'
@@ -168,27 +169,52 @@ export default function ShopPage() {
             })}
           </div>
 
-          {/* Compact Small Search on the right */}
-          <div className="relative shrink-0 w-36 sm:w-56 md:w-64">
-            <span className="material-symbols-outlined absolute left-3 top-2 text-[#7d7567] text-base">
-              search
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search items..."
-              className="w-full bg-[#f4f4ec] text-[#2d2a26] text-xs pl-8 pr-7 py-1.5 rounded-full border border-[#e5e2da] focus:outline-none focus:border-[#6e3418] focus:bg-[#fafbf5] placeholder:text-[#7d7567] transition-all"
-            />
-            {searchQuery && (
+          {/* Compact Smart Search (Takes only 32px on mobile unless opened) */}
+          <div className="shrink-0 flex items-center">
+            {/* Mobile: Compact Search Icon button when closed */}
+            {!isSearchOpen && !searchQuery ? (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1.5 text-[#7d7567] hover:text-[#2d2a26] cursor-pointer"
+                onClick={() => setIsSearchOpen(true)}
+                className="sm:hidden flex items-center justify-center w-8 h-8 rounded-full bg-[#f4f4ec] text-[#6e3418] border border-[#e5e2da] hover:bg-[#6e3418] hover:text-[#fafbf5] transition-all cursor-pointer active:scale-95 shadow-2xs"
+                title="Search items"
+                aria-label="Open search"
               >
-                <span className="material-symbols-outlined text-sm">close</span>
+                <span className="material-symbols-outlined text-base">search</span>
               </button>
-            )}
+            ) : null}
+
+            {/* Expanded Search Input on Mobile OR Always on Tablet/Desktop */}
+            <div
+              className={`${
+                isSearchOpen || searchQuery ? 'flex' : 'hidden sm:flex'
+              } relative items-center w-36 xs:w-44 sm:w-48 md:w-56 transition-all`}
+            >
+              <span className="material-symbols-outlined absolute left-2.5 top-2 text-[#7d7567] text-base pointer-events-none">
+                search
+              </span>
+              <input
+                type="text"
+                autoFocus={isSearchOpen}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search items..."
+                className="w-full bg-[#f4f4ec] text-[#2d2a26] text-xs pl-7 pr-6 py-1.5 rounded-full border border-[#e5e2da] focus:outline-none focus:border-[#6e3418] focus:bg-[#fafbf5] placeholder:text-[#7d7567] transition-all"
+              />
+              {(searchQuery || isSearchOpen) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setIsSearchOpen(false);
+                  }}
+                  className="absolute right-2 top-1.5 text-[#7d7567] hover:text-[#2d2a26] cursor-pointer"
+                  aria-label="Close search"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </nav>

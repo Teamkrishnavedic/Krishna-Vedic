@@ -23,16 +23,9 @@ export default function StorefrontLayout() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Announcement Bar */}
-      {announcement && (
-        <div className="announcement-bar">
-          <p>{announcement}</p>
-        </div>
-      )}
-
       <Header />
 
-      <main className="flex-1 pb-20 xl:pb-0 pt-[84px] sm:pt-[92px] md:pt-[108px]">
+      <main className="flex-1 pb-20 xl:pb-0 pt-[80px] sm:pt-[88px] md:pt-[104px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
