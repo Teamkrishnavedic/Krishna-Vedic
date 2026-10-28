@@ -61,9 +61,9 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 }
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { isAdmin, isStaff, isLoading } = useAuth();
+  const { isStaff, isLoading } = useAuth();
   if (isLoading) return <div className="flex items-center justify-center min-h-screen"><span className="spinner" /></div>;
-  if (!isStaff) return <Navigate to="/admin/login" replace />;
+  if (!isStaff) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -103,8 +103,8 @@ export default function App() {
                   <Route path="account/addresses" element={<RequireAuth><AddressesPage /></RequireAuth>} />
                 </Route>
 
-                {/* ── Admin ─────────────────────────────────────────── */}
-                <Route path="/admin/login" element={<AdminLogin />} />
+                {/* ── Admin (Protected — non-admins redirected to Home) ── */}
+                <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
                 <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="products" element={<AdminProducts />} />
