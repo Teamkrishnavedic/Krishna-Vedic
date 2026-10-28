@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "caniuse-lite": "^1.0.30001819",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "localtunnel": "^2.0.2"
   },
   "dependencies": {
     "effect": "^4.0.6",
