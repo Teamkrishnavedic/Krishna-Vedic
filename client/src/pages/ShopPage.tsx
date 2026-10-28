@@ -6,572 +6,370 @@ import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
 
+// Primary pantry departments
+const CATEGORY_TABS = [
+  { label: 'All Products', slug: 'all', icon: 'apps' },
+  { label: 'Wood-Pressed Oils', slug: 'cold-pressed-oils', icon: 'water_drop' },
+  { label: 'Stone-Ground Spices', slug: 'ground-spices', icon: 'grain' },
+  { label: 'Heritage Masalas', slug: 'masala-blends', icon: 'restaurant_menu' },
+  { label: 'Whole Spices', slug: 'whole-spices', icon: 'spa' },
+  { label: 'A2 Ghee & Honey', slug: 'edible-oils', icon: 'hive' },
+];
+
 export default function ShopPage() {
   const { addItem } = useCart();
   const { toast } = useToast();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState('featured');
-  const [gridCols, setGridCols] = useState<3 | 4>(3);
-  const [priceCeiling, setPriceCeiling] = useState<number>(1800);
-  const [selectedCategory, setSelectedCategory] = useState<string>(
+  const [activeCategory, setActiveCategory] = useState<string>(
     searchParams.get('category') || 'all'
   );
-  const [extractionFilter, setExtractionFilter] = useState<string[]>([]);
-  const [provenanceFilter, setProvenanceFilter] = useState<string[]>([]);
-  const [inStockOnly, setInStockOnly] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>(
+    searchParams.get('q') || ''
+  );
+  const [sortBy, setSortBy] = useState<string>('featured');
 
-  // Fetch products from API
-  const { data, isLoading } = useQuery({
-    queryKey: ['products', page, sortBy, selectedCategory],
-    queryFn: () => {
-      const catQuery = selectedCategory !== 'all' ? `&category=${selectedCategory}` : '';
-      return api
-        .get(`/products?page=${page}&limit=24&sort=${sortBy}${catQuery}`)
-        .then((r) => r.data);
+  // Fetch all published products from API
+  const { data: productsData, isLoading: isProductsLoading } = useQuery({
+    queryKey: ['shop-all-products'],
+    queryFn: async () => {
+      const res = await api.get('/products?limit=100');
+      return res.data;
     },
   });
 
-  const { data: categories } = useQuery({
+  // Fetch real categories
+  const { data: categoriesData } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => api.get('/categories').then((r) => r.data.categories),
+    queryFn: async () => {
+      const res = await api.get('/categories');
+      return res.data.categories || [];
+    },
   });
 
-  const handleAddToCart = async (variantId: string, name: string) => {
+  const handleAddToCart = async (variantId: string, quantity: number) => {
     try {
-      await addItem(variantId, 1);
-      toast({ title: 'Added to cart', description: name, variant: 'success' });
+      await addItem(variantId, quantity);
+      toast({
+        title: 'Added to basket',
+        description: 'Item added to your shopping cart',
+        variant: 'success',
+      });
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'error' });
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || err.message,
+        variant: 'error',
+      });
     }
   };
 
-  const toggleExtraction = (method: string) => {
-    setExtractionFilter((prev) =>
-      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
-    );
-  };
+  const allProducts: any[] = productsData?.products || [];
 
-  const toggleProvenance = (region: string) => {
-    setProvenanceFilter((prev) =>
-      prev.includes(region) ? prev.filter((r) => r !== region) : [...prev, region]
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSelectedCategory('all');
-    setExtractionFilter([]);
-    setProvenanceFilter([]);
-    setPriceCeiling(1800);
-    setInStockOnly(false);
-  };
-
+  // Filter & sort products
   const filteredProducts = useMemo(() => {
-    if (!data?.products) return [];
-    return data.products.filter((p: any) => {
-      const minPricePaise = p.variants?.length
-        ? Math.min(...p.variants.map((v: any) => v.price))
-        : 0;
-      const minPriceRupees = minPricePaise / 100;
-      if (minPriceRupees > priceCeiling) return false;
+    let result = [...allProducts];
 
-      if (extractionFilter.length > 0) {
-        const desc = (p.description || '').toLowerCase() + (p.name || '').toLowerCase();
-        const matches = extractionFilter.some((m) => desc.includes(m.toLowerCase()));
-        if (!matches) return false;
+    // Search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter((p) => {
+        const nameMatch = (p.name || '').toLowerCase().includes(q);
+        const descMatch = (p.description || '').toLowerCase().includes(q);
+        const tagMatch = (p.tags || '').toLowerCase().includes(q);
+        const catMatch = (p.category?.name || '').toLowerCase().includes(q);
+        return nameMatch || descMatch || tagMatch || catMatch;
+      });
+    }
+
+    // Category filter
+    if (activeCategory !== 'all') {
+      result = result.filter((p) => p.category?.slug === activeCategory);
+    }
+
+    // Sort
+    if (sortBy === 'price-asc') {
+      result.sort((a, b) => {
+        const priceA = a.variants?.[0]?.price || 0;
+        const priceB = b.variants?.[0]?.price || 0;
+        return priceA - priceB;
+      });
+    } else if (sortBy === 'price-desc') {
+      result.sort((a, b) => {
+        const priceA = a.variants?.[0]?.price || 0;
+        const priceB = b.variants?.[0]?.price || 0;
+        return priceB - priceA;
+      });
+    } else if (sortBy === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return result;
+  }, [allProducts, searchQuery, activeCategory, sortBy]);
+
+  // Group products by category for the showcase view
+  const categorySections = useMemo(() => {
+    const sections: {
+      categoryName: string;
+      slug: string;
+      description: string;
+      icon: string;
+      products: any[];
+    }[] = [];
+
+    // Filter categories that have products
+    for (const tab of CATEGORY_TABS) {
+      if (tab.slug === 'all') continue;
+      const prods = allProducts.filter((p) => p.category?.slug === tab.slug);
+      if (prods.length > 0) {
+        sections.push({
+          categoryName: tab.label,
+          slug: tab.slug,
+          description:
+            tab.slug === 'cold-pressed-oils'
+              ? 'Cold-extracted below 38°C in slow Albizia wood mortars'
+              : tab.slug === 'ground-spices'
+              ? 'Stone-pulverized at low RPM to preserve volatile essential oils'
+              : tab.slug === 'masala-blends'
+              ? 'Authentic regional recipes roasted and formulated in small batches'
+              : tab.slug === 'whole-spices'
+              ? 'Hand-sorted, sun-dried bold spices from certified heritage farms'
+              : 'Pure Vedic cultured A2 cow ghee and unprocessed wild honey',
+          icon: tab.icon,
+          products: prods,
+        });
       }
+    }
 
-      if (provenanceFilter.length > 0) {
-        const origin = (p.origin || '').toLowerCase() + (p.description || '').toLowerCase();
-        const matches = provenanceFilter.some((reg) => origin.includes(reg.toLowerCase()));
-        if (!matches) return false;
-      }
+    return sections;
+  }, [allProducts]);
 
-      if (inStockOnly) {
-        const hasStock = p.variants?.some((v: any) => (v.stock ?? v.inventoryQty ?? v.inventory ?? 1) > 0);
-        if (!hasStock) return false;
-      }
-
-      return true;
-    });
-  }, [data?.products, priceCeiling, extractionFilter, provenanceFilter, inStockOnly]);
-
-  const totalCount = data?.pagination?.total || (data?.products ? data.products.length : 24);
+  const selectCategory = (slug: string) => {
+    setActiveCategory(slug);
+    if (slug === 'all') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', slug);
+    }
+    setSearchParams(searchParams);
+  };
 
   return (
-    <div className="w-full flex flex-col bg-surface min-h-screen">
-      {/* Top Category Banner & Breadcrumb Area */}
-      <section className="w-full bg-surface-container-low px-gutter-mobile md:px-margin py-space-xl border-b border-outline-variant/30">
-        <div className="max-w-7xl mx-auto flex flex-col gap-space-md">
-          {/* Breadcrumb navigation */}
-          <nav className="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant uppercase tracking-widest text-xs">
-            <Link to="/" className="hover:text-primary transition-colors">
-              Home
-            </Link>
-            <span className="text-outline">/</span>
-            <span className="text-primary font-semibold">Shop All Products</span>
-            <span className="bg-surface px-2.5 py-0.5 text-on-surface-variant font-label-sm text-xs ml-2 rounded-full border border-outline-variant/20">
-              {totalCount} Harvest Items
-            </span>
-          </nav>
-
-          {/* Main Editorial Header */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
-            <div className="max-w-3xl space-y-2">
-              <span className="font-label-md text-xs uppercase tracking-widest text-primary font-bold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
-                Heritage Bull-Ghani &amp; Single-Origin Harvest
-              </span>
-              <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight font-serif">
-                Cold-Pressed Oils, Stone-Ground Masalas &amp; Whole Spices
+    <div className="flex flex-col w-full bg-[#fafbf5] text-[#2d2a26] min-h-screen pb-24">
+      {/* ─── 1. Clean Top Header & Search Bar ──────────────────────────────── */}
+      <section className="w-full bg-[#fafbf5] border-b border-[#e5e2da] pt-6 pb-5 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-[#7d7567] uppercase tracking-wider">
+                <Link to="/" className="hover:text-[#6e3418]">Home</Link>
+                <span>/</span>
+                <span className="text-[#6e3418] font-bold">Products &amp; Pantry</span>
+              </div>
+              <h1 className="font-serif text-2xl sm:text-3xl text-[#2d2a26] font-bold mt-1">
+                The Krishnavedic Pantry
               </h1>
-              <p className="font-body-md text-body-md text-on-surface-variant pt-1 leading-relaxed">
-                Slowly wood-pressed in Mara Chekku ghanis below 38°C and stone-pulverized on traditional chakkis.
-                Retaining full-bodied aroma, essential volatiles, and natural antioxidants direct from our farmer guilds.
-              </p>
             </div>
 
-            {/* Quick Guild Certification Seals */}
-            <div className="flex items-center gap-3 self-start lg:self-auto bg-surface p-space-md rounded-2xl border border-outline-variant/30 shadow-xs">
-              <div className="flex flex-col text-right">
-                <span className="font-label-sm text-xs uppercase tracking-wider text-secondary font-bold">
-                  Lab Assayed
-                </span>
-                <span className="font-body-sm text-xs text-on-surface font-medium">
-                  100% Raw &amp; Unadulterated
-                </span>
-              </div>
-              <span
-                className="material-symbols-outlined text-secondary text-2xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <span className="text-xs text-[#7d7567] hidden sm:inline">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-[#f4f4ec] text-[#2d2a26] text-xs font-semibold px-3.5 py-2 rounded-full border border-[#e5e2da] focus:outline-none focus:border-[#6e3418] cursor-pointer"
               >
-                verified
-              </span>
+                <option value="featured">Featured / Recommended</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name">Alphabetical (A-Z)</option>
+              </select>
             </div>
           </div>
 
-          {/* Quick Category Navigation Tabs with smooth curves */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-space-md no-scrollbar">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-5 py-2 font-label-md text-xs uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer rounded-full border ${
-                selectedCategory === 'all'
-                  ? 'bg-primary text-on-primary border-primary font-semibold shadow-xs'
-                  : 'bg-surface hover:bg-surface-container text-on-surface-variant border-outline-variant/30 hover:text-primary'
-              }`}
-              type="button"
-            >
-              All Products ({totalCount})
-            </button>
-            {categories?.map((cat: any) => (
+          {/* Clean Top Instant Search Bar */}
+          <div className="relative w-full max-w-2xl">
+            <span className="material-symbols-outlined absolute left-4 top-3 text-[#7d7567] text-lg">
+              search
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search mustard oil, haldi, garam masala, ghee, cumin..."
+              className="w-full bg-[#f4f4ec] text-[#2d2a26] text-sm pl-11 pr-10 py-2.5 rounded-full border border-[#e5e2da] focus:outline-none focus:border-[#6e3418] focus:bg-[#fafbf5] placeholder:text-[#7d7567] transition-all"
+            />
+            {searchQuery && (
               <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`px-5 py-2 font-label-md text-xs uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer rounded-full border ${
-                  selectedCategory === cat.slug
-                    ? 'bg-primary text-on-primary border-primary font-semibold shadow-xs'
-                    : 'bg-surface hover:bg-surface-container text-on-surface-variant border-outline-variant/30 hover:text-primary'
-                }`}
                 type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3.5 top-2.5 text-[#7d7567] hover:text-[#2d2a26] cursor-pointer"
               >
-                {cat.name}
+                <span className="material-symbols-outlined text-lg">close</span>
               </button>
-            ))}
+            )}
           </div>
         </div>
       </section>
 
-      {/* Main Catalog Workplace (Sidebar Filters + Product Grid) */}
-      <section className="w-full px-gutter-mobile md:px-margin py-space-xl max-w-7xl mx-auto">
-        {/* Action Bar: Applied Filters, Sorter, Grid Layout Switcher */}
-        <div className="bg-surface-container-low p-space-md mb-space-xl rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md border border-outline-variant/30 shadow-xs">
-          {/* Left: Active Filter Chips */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-label-sm text-xs uppercase tracking-wider text-on-surface-variant font-medium">
-              Active Filters:
-            </span>
-            <span className="bg-surface px-3 py-1 font-label-sm text-xs text-on-surface flex items-center gap-1.5 rounded-full border border-outline-variant/30">
-              Category: {selectedCategory === 'all' ? 'All' : selectedCategory}
-              {selectedCategory !== 'all' && (
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className="text-outline hover:text-primary leading-none text-xs ml-1 cursor-pointer"
-                  type="button"
-                >
-                  ×
-                </button>
-              )}
-            </span>
-            {extractionFilter.map((m) => (
-              <span
-                key={m}
-                className="bg-surface px-3 py-1 font-label-sm text-xs text-on-surface flex items-center gap-1.5 rounded-full border border-outline-variant/30"
-              >
-                Extraction: {m}
-                <button
-                  onClick={() => toggleExtraction(m)}
-                  className="text-outline hover:text-primary leading-none text-xs ml-1 cursor-pointer"
-                  type="button"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            {provenanceFilter.map((r) => (
-              <span
-                key={r}
-                className="bg-surface px-2.5 py-1 font-label-sm text-label-sm text-on-surface flex items-center gap-1.5 border border-outline-variant/30"
-              >
-                Origin: {r}
-                <button
-                  onClick={() => toggleProvenance(r)}
-                  className="text-outline hover:text-primary leading-none text-xs ml-1 cursor-pointer"
-                  type="button"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            {(selectedCategory !== 'all' ||
-              extractionFilter.length > 0 ||
-              provenanceFilter.length > 0 ||
-              priceCeiling < 1800 ||
-              inStockOnly) && (
+      {/* ─── 2. Top Department Navbar (Oils, Spices, Masalas, Ghee...) ──────── */}
+      <nav className="sticky top-16 md:top-20 z-30 w-full bg-[#fafbf5]/95 backdrop-blur-md border-b border-[#e5e2da] py-2.5 px-4 md:px-8 shadow-xs">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
+          {CATEGORY_TABS.map((tab) => {
+            const isSelected = activeCategory === tab.slug;
+            return (
               <button
-                onClick={clearAllFilters}
-                className="font-label-sm text-label-sm text-primary uppercase underline underline-offset-4 font-semibold hover:text-secondary pl-2 cursor-pointer"
-                type="button"
-              >
-                Clear All
-              </button>
-            )}
-          </div>
-
-          {/* Right: Sorting & Display Density */}
-          <div className="flex items-center gap-space-md w-full md:w-auto justify-between md:justify-end">
-            <div className="flex items-center gap-2">
-              <label
-                className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant whitespace-nowrap"
-                htmlFor="catalog-sort"
-              >
-                Sort By:
-              </label>
-              <select
-                className="bg-surface text-on-surface font-body-sm text-body-sm px-space-md py-2 focus:outline-none focus:bg-surface-container-high transition-colors cursor-pointer border border-outline-variant/40"
-                id="catalog-sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="featured">Featured Heritage Selection</option>
-                <option value="createdAt">Freshly Pressed / New Harvest</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-              </select>
-            </div>
-
-            {/* Grid Column Controls */}
-            <div className="hidden sm:flex items-center bg-surface p-1 gap-1 rounded-full border border-outline-variant/30">
-              <button
-                aria-label="3 column layout"
-                onClick={() => setGridCols(3)}
-                className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-                  gridCols === 3
-                    ? 'bg-surface-container-highest text-primary font-bold'
-                    : 'text-on-surface-variant hover:text-primary'
+                key={tab.slug}
+                onClick={() => selectCategory(tab.slug)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap uppercase tracking-wider transition-all cursor-pointer border ${
+                  isSelected
+                    ? 'bg-[#6e3418] text-[#fafbf5] border-[#6e3418] shadow-xs'
+                    : 'bg-[#f4f4ec] text-[#2d2a26] border-[#e5e2da] hover:bg-[#e8e8dc] hover:text-[#6e3418]'
                 }`}
-                title="3-Column Editorial View"
-                type="button"
               >
-                <span className="material-symbols-outlined text-lg leading-none">view_column</span>
-              </button>
-              <button
-                aria-label="4 column layout"
-                onClick={() => setGridCols(4)}
-                className={`p-1.5 rounded-full transition-colors cursor-pointer ${
-                  gridCols === 4
-                    ? 'bg-surface-container-highest text-primary font-bold'
-                    : 'text-on-surface-variant hover:text-primary'
-                }`}
-                title="4-Column Compact View"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-lg leading-none">grid_view</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Layout Grid: Left Sidebar + Right Products */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
-          {/* FILTER SIDEBAR (3 Cols on lg) */}
-          <aside className="lg:col-span-3 flex flex-col gap-space-lg bg-surface-container-low p-space-lg rounded-3xl border border-outline-variant/30 shadow-xs">
-            <div className="flex items-center justify-between pb-space-sm bg-surface-container-high p-3 rounded-2xl border-b border-outline-variant/30">
-              <span className="font-headline-sm text-headline-sm text-primary font-serif">
-                Refine Harvest
-              </span>
-              <span className="material-symbols-outlined text-primary text-xl">tune</span>
-            </div>
-
-            {/* Filter 1: Extraction Technique */}
-            <div className="flex flex-col gap-space-sm bg-surface p-space-md rounded-2xl border border-outline-variant/20 shadow-xs">
-              <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-                Extraction Method
-              </h3>
-              <div className="flex flex-col gap-2 pt-1 font-body-sm text-body-sm">
-                {[
-                  { label: 'Wood-Pressed Ghani', key: 'wood' },
-                  { label: 'Slow Stone-Ground', key: 'stone' },
-                  { label: 'Hand-Pounded Masala', key: 'pound' },
-                  { label: 'Sun-Dried Whole Pods', key: 'sun' },
-                ].map((item) => (
-                  <label
-                    key={item.key}
-                    className="flex items-center justify-between cursor-pointer group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={extractionFilter.includes(item.key)}
-                        onChange={() => toggleExtraction(item.key)}
-                        className="w-4 h-4 accent-primary rounded-none cursor-pointer"
-                      />
-                      <span className="text-on-surface group-hover:text-primary transition-colors">
-                        {item.label}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filter 2: Price Range Slider */}
-            <div className="flex flex-col gap-space-sm bg-surface p-space-md rounded-2xl border border-outline-variant/20 shadow-xs">
-              <div className="flex items-center justify-between">
-                <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-                  Price Ceiling
-                </h3>
-                <span className="font-label-md text-label-md text-primary font-bold">
-                  ₹150 to ₹{priceCeiling}
+                <span className="material-symbols-outlined text-base">
+                  {tab.icon}
                 </span>
-              </div>
-              <input
-                className="w-full accent-primary cursor-pointer mt-2"
-                max={1800}
-                min={150}
-                step={50}
-                type="range"
-                value={priceCeiling}
-                onChange={(e) => setPriceCeiling(Number(e.target.value))}
-              />
-              <div className="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
-                <span>₹150 Spices</span>
-                <span>₹1,800 Ghani 5L</span>
-              </div>
-            </div>
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
-            {/* Filter 3: Micro-Region Provenance */}
-            <div className="flex flex-col gap-space-sm bg-surface p-space-md rounded-2xl border border-outline-variant/20 shadow-xs">
-              <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-                Micro-Region Provenance
-              </h3>
-              <div className="flex flex-col gap-2 pt-1 font-body-sm text-body-sm">
-                {[
-                  { name: 'Rajasthan (Black Mustard)', key: 'rajasthan' },
-                  { name: 'Salem, TN (High-Curcumin)', key: 'salem' },
-                  { name: 'Karnataka (Byadagi Chilli)', key: 'karnataka' },
-                  { name: 'Wayanad (Malabar Peppercorn)', key: 'wayanad' },
-                ].map((reg) => (
-                  <label
-                    key={reg.key}
-                    className="flex items-center justify-between cursor-pointer group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={provenanceFilter.includes(reg.key)}
-                        onChange={() => toggleProvenance(reg.key)}
-                        className="w-4 h-4 accent-primary rounded cursor-pointer"
-                      />
-                      <span className="text-on-surface group-hover:text-primary transition-colors">
-                        {reg.name}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Filter 4: Batch Availability */}
-            <div className="flex flex-col gap-space-sm bg-surface p-space-md rounded-2xl border border-outline-variant/20 shadow-xs">
-              <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-                Harvest Status
-              </h3>
-              <div className="flex flex-col gap-2 font-body-sm text-body-sm">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={inStockOnly}
-                      onChange={(e) => setInStockOnly(e.target.checked)}
-                      className="w-4 h-4 accent-secondary rounded cursor-pointer"
-                    />
-                    <span className="text-on-surface font-medium">In Stock &amp; Bottled</span>
-                  </span>
-                  <span className="bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full font-label-sm text-xs font-semibold">
-                    Live
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Guild Seal Certificate Box */}
-            <div className="bg-surface-container-highest p-space-md rounded-2xl flex flex-col gap-2 border border-outline-variant/30 shadow-xs">
-              <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">
-                Provenance Pledge
+      {/* ─── 3. Main Product Showcase / Grid ───────────────────────────────── */}
+      <main className="max-w-7xl mx-auto w-full px-4 md:px-8 py-8 space-y-12">
+        {isProductsLoading ? (
+          <div className="py-24 text-center text-[#7d7567] font-serif">
+            <span className="spinner mb-2 inline-block" />
+            <p>Loading fresh harvest products...</p>
+          </div>
+        ) : searchQuery.trim() ? (
+          /* ─── Search Results View ────────────────────────────────────────── */
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b border-[#e5e2da] pb-3">
+              <h2 className="font-serif text-xl sm:text-2xl text-[#2d2a26] font-bold">
+                Search Results for &ldquo;{searchQuery}&rdquo;
+              </h2>
+              <span className="text-xs text-[#7d7567]">
+                {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'} found
               </span>
-              <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                Every glass bottle carries its master miller signature and direct QR linking to the
-                NABL moisture and acid value assay report.
-              </p>
-              <Link
-                to="/about"
-                className="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider hover:text-primary mt-1"
-              >
-                Read Assay Protocol &rarr;
-              </Link>
             </div>
-          </aside>
 
-          {/* PRODUCT SHOWCASE GRID (9 Cols on lg) */}
-          <main className="lg:col-span-9 flex flex-col gap-space-xl">
-            {isLoading ? (
-              <div className="p-12 text-center text-on-surface-variant font-serif text-lg border border-outline-variant/30 bg-surface-container-lowest">
-                Retrieving small-batch harvest logs...
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="bg-surface-container-lowest p-12 text-center border border-outline-variant/30 space-y-4">
-                <span className="material-symbols-outlined text-4xl text-outline">search_off</span>
-                <h3 className="font-title-lg text-title-lg text-on-surface font-serif">
-                  No harvest products matched your filters
-                </h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mx-auto">
-                  Try widening your price ceiling or deselecting specific extraction methods to discover available small-batch lots.
-                </p>
+            {filteredProducts.length === 0 ? (
+              <div className="py-20 text-center space-y-3">
+                <p className="font-serif text-lg text-[#7d7567]">No products matched your search.</p>
                 <button
-                  onClick={clearAllFilters}
-                  className="bg-primary text-on-primary px-6 py-2.5 font-label-md text-label-md uppercase tracking-wider hover:bg-secondary transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="px-6 py-2 rounded-full bg-[#6e3418] text-[#fafbf5] text-xs font-semibold uppercase tracking-wider cursor-pointer"
                 >
-                  Reset All Filters
+                  Clear Search
                 </button>
               </div>
             ) : (
-              <div
-                className={`grid gap-space-lg ${
-                  gridCols === 4
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
-                    : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
-                }`}
-                id="product-grid"
-              >
-                {filteredProducts.map((product: any) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onAddToCart={(variantId, qty) => handleAddToCart(variantId, product.name)}
+                    onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
                   />
                 ))}
               </div>
             )}
+          </div>
+        ) : activeCategory === 'all' ? (
+          /* ─── Category-by-Category Showcase View (User requested) ────────── */
+          <div className="space-y-16">
+            {categorySections.map((sec) => (
+              <section key={sec.slug} className="space-y-6">
+                {/* Category Showcase Header */}
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e5e2da] pb-4">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#6e3418]">
+                      <span className="material-symbols-outlined text-base">{sec.icon}</span>
+                      <span>Department</span>
+                    </div>
+                    <h2 className="font-serif text-2xl sm:text-3xl text-[#2d2a26] font-bold">
+                      {sec.categoryName}
+                    </h2>
+                    <p className="text-xs text-[#7d7567] max-w-xl">
+                      {sec.description}
+                    </p>
+                  </div>
 
-            {/* Pagination Controls */}
-            {data?.pagination && (
-              <div className="bg-surface-container-low p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md border border-outline-variant/30">
-                <span className="font-body-sm text-body-sm text-on-surface-variant">
-                  Showing{' '}
-                  <strong className="text-on-surface font-semibold">
-                    {Math.min(1, filteredProducts.length)} to {filteredProducts.length}
-                  </strong>{' '}
-                  of <strong className="text-on-surface font-semibold">{totalCount}</strong> products
-                </span>
-                <div className="flex items-center gap-1">
                   <button
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 bg-surface text-outline hover:text-primary font-label-md text-label-md disabled:opacity-50 transition-colors border border-outline-variant/30 cursor-pointer"
                     type="button"
+                    onClick={() => selectCategory(sec.slug)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#3f674f] hover:text-[#2d4d3a] hover:underline cursor-pointer self-start sm:self-auto shrink-0"
                   >
-                    &larr; Prev
-                  </button>
-                  {Array.from({ length: Math.min(5, data.pagination.pages || 1) }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-3.5 py-1.5 font-label-md text-label-md transition-colors cursor-pointer border ${
-                          p === page
-                            ? 'bg-primary text-on-primary border-primary font-bold'
-                            : 'bg-surface hover:bg-surface-container text-on-surface border-outline-variant/30'
-                        }`}
-                        type="button"
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-                  <button
-                    disabled={page >= (data.pagination.pages || 1)}
-                    onClick={() => setPage((p) => p + 1)}
-                    className="px-3 py-1.5 bg-surface text-on-surface hover:text-primary font-label-md text-label-md disabled:opacity-50 transition-colors border border-outline-variant/30 cursor-pointer"
-                    type="button"
-                  >
-                    Next &rarr;
+                    <span>View All {sec.categoryName} ({sec.products.length})</span>
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </button>
                 </div>
+
+                {/* Products Grid (Shows products of this category) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {sec.products.slice(0, 4).map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          /* ─── Single Category View (When specific tab is clicked) ────────── */
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#e5e2da] pb-4">
+              <div>
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#2d2a26] font-bold">
+                  {CATEGORY_TABS.find((t) => t.slug === activeCategory)?.label || 'Products'}
+                </h2>
+                <p className="text-xs text-[#7d7567] mt-0.5">
+                  Showing all {filteredProducts.length} authentic handcrafted items
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => selectCategory('all')}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7d7567] hover:text-[#6e3418] cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                <span>Back to All Categories</span>
+              </button>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="py-20 text-center space-y-3">
+                <p className="font-serif text-lg text-[#7d7567]">No products in this category yet.</p>
+                <button
+                  type="button"
+                  onClick={() => selectCategory('all')}
+                  className="px-6 py-2 rounded-full bg-[#6e3418] text-[#fafbf5] text-xs font-semibold uppercase tracking-wider cursor-pointer"
+                >
+                  View All Categories
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
+                  />
+                ))}
               </div>
             )}
-          </main>
-        </div>
-      </section>
-
-      {/* Harvest Proof Assurance Strip */}
-      <section className="w-full bg-surface-container-high py-space-xl px-gutter-mobile md:px-margin border-t border-outline-variant/30">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-space-lg items-center">
-          <div className="flex items-start gap-space-md">
-            <span className="material-symbols-outlined text-primary text-3xl">hourglass_bottom</span>
-            <div className="space-y-1">
-              <h4 className="font-title-lg text-title-lg text-primary font-bold font-serif">
-                Cold Ghani Pressed Under 38°C
-              </h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Our slow wooden pestles rotate at 14 RPM to ensure vital antioxidants and monounsaturated fatty acids never degrade.
-              </p>
-            </div>
           </div>
-          <div className="flex items-start gap-space-md">
-            <span className="material-symbols-outlined text-primary text-3xl">receipt_long</span>
-            <div className="space-y-1">
-              <h4 className="font-title-lg text-title-lg text-primary font-bold font-serif">
-                Traceable Lab Certificate
-              </h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Scan the batch QR stamp on any bottle to view the exact NABL purity assay, FFA levels, and peroxide index.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-space-md">
-            <span className="material-symbols-outlined text-primary text-3xl">local_shipping</span>
-            <div className="space-y-1">
-              <h4 className="font-title-lg text-title-lg text-primary font-bold font-serif">
-                Zero-Plastic Glass Delivery
-              </h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Packed in UV-shielding amber glass bottles and sealed food-grade tins, shipped with biodegradable husk cushions.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+        )}
+      </main>
     </div>
   );
 }
