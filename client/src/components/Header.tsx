@@ -7,13 +7,13 @@ import BrandLogo from '@/components/BrandLogo';
 import { STORE_CONFIG } from '@/lib/storeConfig';
 
 export default function Header() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { cart, itemCount, openCart } = useCart();
   const navigate = useNavigate();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +24,20 @@ export default function Header() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUserDropdownOpen(false);
+      navigate('/');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   const navLinks = [
     { label: 'Products', to: '/products' },
     { label: 'Our Heritage', to: '/about' },
-    { label: 'Contact & Care', to: '/contact' },
-    { label: 'My Orders', to: '/account/orders' },
+    { label: 'Contact', to: '/contact' },
   ];
 
   return (
@@ -76,15 +85,6 @@ export default function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Mobile Direct Contact Button (Replaces redundant search & basket on mobile) */}
-          <Link
-            to="/contact"
-            className="flex md:hidden items-center gap-1.5 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
-          >
-            <span className="material-symbols-outlined text-base">support_agent</span>
-            <span>Contact</span>
-          </Link>
-
           {/* Search Toggle Button (Desktop & Tablet) */}
           <button
             type="button"
@@ -96,29 +96,6 @@ export default function Header() {
               {searchOpen ? 'close' : 'search'}
             </span>
           </button>
-
-          {/* Account Profile (Desktop) */}
-          {isAuthenticated ? (
-            <Link
-              to="/account"
-              className="hidden sm:flex items-center gap-2 text-[#52443c] hover:text-[#6e3418] transition-colors py-1 px-2.5 rounded-full hover:bg-[#f4f4ec]"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#3f674f] text-[#fafbf5] flex items-center justify-center font-bold text-xs ring-1 ring-[#e5e2da]">
-                {user?.name?.charAt(0) || 'U'}
-              </div>
-              <span className="hidden lg:inline text-xs font-semibold uppercase tracking-wider">
-                {user?.name?.split(' ')[0]}
-              </span>
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="hidden sm:flex items-center gap-1.5 text-[#52443c] hover:text-[#6e3418] transition-colors py-1.5 px-3 rounded-full hover:bg-[#f4f4ec] text-xs uppercase tracking-wider font-semibold"
-            >
-              <span className="material-symbols-outlined text-lg">person</span>
-              <span className="hidden lg:inline">Sign In</span>
-            </Link>
-          )}
 
           {/* Cart Bag Pill (Desktop & Tablet) */}
           <button
@@ -137,17 +114,82 @@ export default function Header() {
             )}
           </button>
 
-          {/* Mobile hamburger menu */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2d2a26] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors border border-[#e5e2da]"
-            aria-label="Toggle menu"
+          {/* 1. "My Orders" Button */}
+          <Link
+            to="/account/orders"
+            className="flex items-center gap-1.5 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
           >
-            <span className="material-symbols-outlined text-xl sm:text-2xl">
-              {mobileMenuOpen ? 'close' : 'menu'}
-            </span>
-          </button>
+            <span className="material-symbols-outlined text-base">receipt_long</span>
+            <span className="whitespace-nowrap">My Orders</span>
+          </Link>
+
+          {/* 2. Auth State Button: Sign In (if guest) OR User Name with Log Out dropdown (if logged in) */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-1.5 bg-[#6e3418] text-[#fafbf5] hover:bg-[#522510] px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+              >
+                <div className="w-5 h-5 rounded-full bg-[#fafbf5] text-[#6e3418] flex items-center justify-center font-bold text-[10px]">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span className="max-w-[70px] sm:max-w-[100px] truncate">
+                  {user?.name?.split(' ')[0] || 'Account'}
+                </span>
+                <span className="material-symbols-outlined text-sm">
+                  {userDropdownOpen ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
+
+              {userDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setUserDropdownOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 bg-[#fafbf5] border border-[#e5e2da] rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-xs">
+                    <div className="px-4 py-2 border-b border-[#e5e2da]">
+                      <p className="font-bold text-[#2d2a26] truncate">{user?.name}</p>
+                      <p className="text-[#7d7567] text-[11px] truncate">{user?.email}</p>
+                    </div>
+                    <Link
+                      to="/account"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-[#2d2a26] hover:bg-[#f4f4ec] hover:text-[#6e3418] font-medium"
+                    >
+                      <span className="material-symbols-outlined text-base">person</span>
+                      <span>Account Details</span>
+                    </Link>
+                    <Link
+                      to="/account/orders"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-[#2d2a26] hover:bg-[#f4f4ec] hover:text-[#6e3418] font-medium"
+                    >
+                      <span className="material-symbols-outlined text-base">receipt_long</span>
+                      <span>Order History</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full text-left flex items-center gap-2 px-4 py-2 text-[#b91c1c] hover:bg-[#fee2e2] font-semibold border-t border-[#e5e2da] cursor-pointer mt-1"
+                    >
+                      <span className="material-symbols-outlined text-base">logout</span>
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-1.5 bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
+            >
+              <span className="material-symbols-outlined text-base">person</span>
+              <span className="whitespace-nowrap">Sign In</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -178,39 +220,7 @@ export default function Header() {
         </div>
       )}
 
-      {/* Mobile Drawer Menu with smooth curved border */}
-      {mobileMenuOpen && (
-        <div className="xl:hidden bg-[#fafbf5] border border-[#e5e2da] rounded-3xl m-3 p-5 space-y-4 shadow-xl">
-          <nav className="flex flex-col space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className="font-label-lg text-xs uppercase tracking-wider text-[#2d2a26] hover:text-[#6e3418] hover:bg-[#f4f4ec] px-4 py-3 rounded-2xl border border-transparent hover:border-[#e5e2da] flex items-center justify-between transition-colors"
-              >
-                <span className="font-semibold">{link.label}</span>
-                <span className="material-symbols-outlined text-base text-[#7d7567]">arrow_forward</span>
-              </Link>
-            ))}
-          </nav>
 
-          <div className="pt-3 border-t border-[#e5e2da] flex flex-col gap-2 text-xs text-[#7d7567]">
-            <div className="flex items-center justify-between">
-              <span>Jaipur Helpline:</span>
-              <a href={`tel:${STORE_CONFIG.phone.replace(/\s+/g, '')}`} className="font-bold text-[#6e3418] hover:underline">
-                {STORE_CONFIG.phone}
-              </a>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Official Care:</span>
-              <a href={`mailto:${STORE_CONFIG.email}`} className="font-medium text-[#2d2a26]">
-                {STORE_CONFIG.email}
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

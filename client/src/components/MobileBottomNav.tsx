@@ -71,19 +71,17 @@ export default function MobileBottomNav() {
           )}
         </button>
 
-        {/* Account / Login */}
+        {/* Contact & Support */}
         <NavLink
-          to={isAuthenticated ? '/account' : '/login'}
+          to="/contact"
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
-            isCurrent('/account') || isCurrent('/login')
+            isCurrent('/contact')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
               : 'text-[#7d7567] hover:text-[#2d2a26]'
           }`}
         >
-          <span className="material-symbols-outlined text-xl">person</span>
-          <span className="text-[10px] uppercase tracking-wider font-semibold">
-            {isAuthenticated ? user?.name?.split(' ')[0] || 'Account' : 'Sign In'}
-          </span>
+          <span className="material-symbols-outlined text-xl">support_agent</span>
+          <span className="text-[10px] uppercase tracking-wider font-semibold">Contact</span>
         </NavLink>
       </div>
     </nav>
