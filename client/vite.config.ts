@@ -15,6 +15,7 @@ export default defineConfig({
   },
   server: {
     host: true,
+    allowedHosts: ['.lhr.life', 'localhost', '127.0.0.1'],
     port: parseInt(process.env.PORT || '5173', 10),
     proxy: {
       '/api': {

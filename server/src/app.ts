@@ -25,6 +25,7 @@ import uploadRoutes from './routes/upload';
 import settingsRoutes from './routes/settings';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Disable technology disclosure
 app.disable('x-powered-by');
@@ -88,6 +89,9 @@ app.use(
         (!isProduction && (
           origin.startsWith('http://localhost:') ||
           origin.startsWith('http://127.0.0.1:') ||
+          origin.endsWith('.loca.lt') ||
+          origin.endsWith('.ngrok-free.app') ||
+          origin.endsWith('.trycloudflare.com') ||
           /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
         ))
       ) {
