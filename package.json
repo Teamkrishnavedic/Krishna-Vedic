@@ -23,5 +23,8 @@
   "dependencies": {
     "effect": "^4.0.6",
     "framer-motion": "^14.6.0"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.65.0"
   }
 }
