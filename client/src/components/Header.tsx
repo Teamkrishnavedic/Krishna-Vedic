@@ -41,15 +41,15 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#fafbf5] border-b border-[#e5e2da] rounded-b-2xl md:rounded-b-none shadow-sm md:shadow-none transition-all">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#fafbf5] border-b border-[#e5e2da] shadow-xs transition-all">
       {/* Top Ethos / Assistance Ticker */}
-      <div className="bg-[#3f674f] text-[#fafbf5] px-4 md:px-margin text-center py-1.5 flex items-center justify-between font-label-md text-label-md">
+      <div className="bg-[#3f674f] text-[#fafbf5] px-3 sm:px-4 text-center py-1 flex items-center justify-between text-[11px] sm:text-xs font-medium">
         <div className="hidden md:flex items-center gap-1.5 text-xs text-[#fafbf5]/90">
           <span className="material-symbols-outlined text-sm">support_agent</span>
           <span>Helpdesk: {STORE_CONFIG.phone}</span>
         </div>
-        <div className="mx-auto text-center tracking-wider text-xs sm:text-[11px] font-medium">
-          Free shipping on orders above ₹799 • Traditional Bull-Ghani &amp; Wood-Pressed Oils • Lab Assayed Purity
+        <div className="mx-auto text-center tracking-wider truncate max-w-full">
+          Free shipping on orders above ₹799 • Bull-Ghani &amp; Wood-Pressed Purity
         </div>
         <div className="hidden md:flex items-center gap-1 text-xs text-[#fafbf5]/90 font-medium">
           <span className="material-symbols-outlined text-sm">verified</span>
@@ -58,9 +58,9 @@ export default function Header() {
       </div>
 
       {/* Main Navigation Bar */}
-      <div className="h-16 md:h-20 max-w-7xl mx-auto px-4 md:px-gutter flex items-center justify-between">
+      <div className="h-14 sm:h-16 md:h-20 max-w-7xl mx-auto px-3 sm:px-4 md:px-gutter flex items-center justify-between gap-2">
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center focus:outline-none">
+        <Link to="/" className="flex items-center focus:outline-none shrink-0">
           <BrandLogo size="md" />
         </Link>
 
@@ -84,7 +84,7 @@ export default function Header() {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Search Toggle Button (Desktop & Tablet) */}
           <button
             type="button"
@@ -117,27 +117,27 @@ export default function Header() {
           {/* 1. "My Orders" Button */}
           <Link
             to="/account/orders"
-            className="flex items-center gap-1.5 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
+            className="flex items-center gap-1 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
           >
             <span className="material-symbols-outlined text-base">receipt_long</span>
-            <span className="whitespace-nowrap">My Orders</span>
+            <span className="hidden xs:inline">Orders</span>
           </Link>
 
           {/* 2. Auth State Button: Sign In (if guest) OR User Name with Log Out dropdown (if logged in) */}
           {isAuthenticated ? (
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-1.5 bg-[#6e3418] text-[#fafbf5] hover:bg-[#522510] px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 bg-[#6e3418] text-[#fafbf5] hover:bg-[#522510] px-2 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer active:scale-95 shadow-xs shrink-0"
               >
-                <div className="w-5 h-5 rounded-full bg-[#fafbf5] text-[#6e3418] flex items-center justify-center font-bold text-[10px]">
+                <div className="w-5 h-5 rounded-full bg-[#fafbf5] text-[#6e3418] flex items-center justify-center font-bold text-[10px] shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
-                <span className="max-w-[70px] sm:max-w-[100px] truncate">
+                <span className="max-w-[55px] sm:max-w-[90px] truncate">
                   {user?.name?.split(' ')[0] || 'Account'}
                 </span>
-                <span className="material-symbols-outlined text-sm">
+                <span className="material-symbols-outlined text-xs sm:text-sm">
                   {userDropdownOpen ? 'expand_less' : 'expand_more'}
                 </span>
               </button>
@@ -184,7 +184,7 @@ export default function Header() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-1.5 bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] px-3.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
+              className="flex items-center gap-1 bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
             >
               <span className="material-symbols-outlined text-base">person</span>
               <span className="whitespace-nowrap">Sign In</span>

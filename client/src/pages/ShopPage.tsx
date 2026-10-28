@@ -143,7 +143,7 @@ export default function ShopPage() {
   return (
     <div className="flex flex-col w-full bg-[#fafbf5] text-[#2d2a26] min-h-screen pb-24">
       {/* ─── 1. Clean Products Navbar + Small Search (Right under Main Header) ── */}
-      <nav className="sticky top-16 md:top-20 z-30 w-full bg-[#fafbf5]/95 backdrop-blur-md border-b border-[#e5e2da] py-2 px-4 md:px-8 shadow-xs">
+      <nav className="sticky top-[80px] sm:top-[90px] md:top-[104px] z-30 w-full bg-[#fafbf5]/95 backdrop-blur-md border-b border-[#e5e2da] py-2 px-3 sm:px-4 md:px-8 shadow-xs">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           {/* Scrollable Category Pills from Database */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-grow py-0.5">

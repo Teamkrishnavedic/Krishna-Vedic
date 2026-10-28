@@ -32,7 +32,7 @@ export default function StorefrontLayout() {
 
       <Header />
 
-      <main className="flex-1 pb-16 xl:pb-0">
+      <main className="flex-1 pb-20 xl:pb-0 pt-[84px] sm:pt-[92px] md:pt-[108px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

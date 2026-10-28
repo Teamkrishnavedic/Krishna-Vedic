@@ -7,14 +7,14 @@ interface BrandLogoProps {
 }
 
 export default function BrandLogo({ className = '', showSubtitle = true, size = 'md' }: BrandLogoProps) {
-  const iconSize = size === 'sm' ? 'w-8 h-8' : size === 'lg' ? 'w-12 h-12' : 'w-10 h-10';
-  const titleSize = size === 'sm' ? 'text-base' : size === 'lg' ? 'text-2xl' : 'text-lg';
-  const subSize = size === 'sm' ? 'text-[9px]' : size === 'lg' ? 'text-xs' : 'text-[10px]';
+  const iconSize = size === 'sm' ? 'w-7 h-7' : size === 'lg' ? 'w-11 h-11' : 'w-8 h-8 sm:w-10 sm:h-10';
+  const titleSize = size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-xl sm:text-2xl' : 'text-base sm:text-lg';
+  const subSize = size === 'sm' ? 'text-[8px]' : size === 'lg' ? 'text-xs' : 'text-[9px] sm:text-[10px]';
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${className}`}>
       {/* Handcrafted Bull-Ghani & Wooden Mortar Vedic Emblem */}
-      <div className={`${iconSize} rounded-2xl bg-[#6e3418] text-[#fafbf5] flex items-center justify-center shadow-sm shrink-0 p-1.5 border border-[#522510]/30`}>
+      <div className={`${iconSize} rounded-xl sm:rounded-2xl bg-[#6e3418] text-[#fafbf5] flex items-center justify-center shadow-xs shrink-0 p-1 sm:p-1.5 border border-[#522510]/30`}>
         <svg viewBox="0 0 32 32" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Earthen / Wooden Ghani Mortar Base */}
           <path
@@ -56,7 +56,7 @@ export default function BrandLogo({ className = '', showSubtitle = true, size = 
           Krishnavedic
         </span>
         {showSubtitle && (
-          <span className={`font-sans ${subSize} uppercase tracking-widest text-[#7d7567] font-semibold mt-0.5 leading-none`}>
+          <span className={`hidden xs:inline font-sans ${subSize} uppercase tracking-widest text-[#7d7567] font-semibold mt-0.5 leading-none`}>
             Bull-Driven Oils &amp; Spices
           </span>
         )}
