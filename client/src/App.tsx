@@ -15,6 +15,7 @@ import AdminLayout from '@/layouts/AdminLayout';
 import HomePage from '@/pages/HomePage';
 import ShopPage from '@/pages/ShopPage';
 import CategoryPage from '@/pages/CategoryPage';
+import CategoriesPage from '@/pages/CategoriesPage';
 import ProductPage from '@/pages/ProductPage';
 import SearchPage from '@/pages/SearchPage';
 import CartPage from '@/pages/CartPage';
@@ -79,6 +80,8 @@ export default function App() {
                   <Route index element={<HomePage />} />
                   <Route path="shop" element={<ShopPage />} />
                   <Route path="shop/:category" element={<CategoryPage />} />
+                  <Route path="categories" element={<CategoriesPage />} />
+                  <Route path="products" element={<CategoriesPage />} />
                   <Route path="products/:slug" element={<ProductPage />} />
                   <Route path="search" element={<SearchPage />} />
                   <Route path="cart" element={<CartPage />} />

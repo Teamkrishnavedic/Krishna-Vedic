@@ -30,17 +30,17 @@ export default function MobileBottomNav() {
           <span className="text-[10px] uppercase tracking-wider font-semibold">Home</span>
         </NavLink>
 
-        {/* Shop All */}
+        {/* Products / Categories Catalog (Amazon style) */}
         <NavLink
-          to="/shop"
+          to="/categories"
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
-            isCurrent('/shop')
+            isCurrent('/categories') || isCurrent('/shop')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
               : 'text-[#7d7567] hover:text-[#2d2a26]'
           }`}
         >
-          <span className="material-symbols-outlined text-xl">storefront</span>
-          <span className="text-[10px] uppercase tracking-wider font-semibold">Ghani</span>
+          <span className="material-symbols-outlined text-xl">grid_view</span>
+          <span className="text-[10px] uppercase tracking-wider font-semibold">Products</span>
         </NavLink>
 
         {/* Search */}

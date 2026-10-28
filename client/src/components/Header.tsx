@@ -25,20 +25,12 @@ export default function Header() {
   };
 
   const navLinks = [
-    { label: 'Shop All', to: '/shop' },
-    { label: 'Cold-Pressed Oils', to: '/shop/cold-pressed-oils' },
+    { label: 'Products', to: '/categories' },
+    { label: 'Wood-Pressed Oils', to: '/shop/cold-pressed-oils' },
     { label: 'Stone-Ground Spices', to: '/shop/ground-spices' },
     { label: 'Masala Blends', to: '/shop/masala-blends' },
     { label: 'Our Heritage', to: '/about' },
     { label: 'Contact & Care', to: '/contact' },
-  ];
-
-  const quickMobilePills = [
-    { label: 'Mustard Oil', to: '/search?q=mustard' },
-    { label: 'Wood Ghani Oils', to: '/shop/cold-pressed-oils' },
-    { label: 'Stone Spices', to: '/shop/ground-spices' },
-    { label: 'A2 Ghee', to: '/search?q=ghee' },
-    { label: 'Royal Blends', to: '/shop/masala-blends' },
   ];
 
   return (
@@ -150,19 +142,6 @@ export default function Header() {
             </span>
           </button>
         </div>
-      </div>
-
-      {/* Quick Mobile Category Scrollable Pills (Only on Mobile) */}
-      <div className="xl:hidden px-4 pb-2.5 pt-0 overflow-x-auto no-scrollbar flex items-center gap-2 border-t border-[#f4f4ec]">
-        {quickMobilePills.map((pill) => (
-          <Link
-            key={pill.label}
-            to={pill.to}
-            className="text-[11px] uppercase tracking-wider font-semibold whitespace-nowrap px-3 py-1 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] rounded-full transition-colors shrink-0 border border-[#e5e2da]"
-          >
-            {pill.label}
-          </Link>
-        ))}
       </div>
 
       {/* Dropdown Live Search Bar with smooth curves */}
