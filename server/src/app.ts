@@ -124,12 +124,13 @@ app.use(
     secret: sessionSecret || 'dev-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Refresh cookie expiration on activity
     name: 'kv.sid',
     cookie: {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
-      maxAge: parseInt(process.env.SESSION_MAX_AGE || '604800000', 10),
+      httpOnly: true, // Immune to JavaScript / XSS token theft
+      secure: isProduction ? true : 'auto', // Secure on HTTPS (tunnels, Vercel, SSL)
+      sameSite: 'lax',
+      maxAge: parseInt(process.env.SESSION_MAX_AGE || '604800000', 10), // 7 days
     },
   }),
 );
