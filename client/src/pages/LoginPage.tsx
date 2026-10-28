@@ -28,9 +28,11 @@ export default function LoginPage() {
       </div>
 
       <div className="bg-surface-container-low p-8 border border-outline-variant/30 text-center space-y-6">
-        <div className="w-16 h-16 bg-[#f4f4ec] border border-[#e5e2da] rounded-full flex items-center justify-center mx-auto text-[#6e3418]">
-          <span className="material-symbols-outlined text-3xl">verified_user</span>
-        </div>
+        <img
+          src="/logo.png"
+          alt="Krishnavedic"
+          className="h-16 w-auto mx-auto object-contain rounded-xl shadow-xs"
+        />
 
         <div>
           <h2 className="font-serif text-lg font-bold text-on-surface">Secure 1-Click Sign In</h2>

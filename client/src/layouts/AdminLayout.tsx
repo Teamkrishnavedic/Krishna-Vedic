@@ -31,10 +31,12 @@ export default function AdminLayout() {
   const Sidebar = () => (
     <div className="h-full flex flex-col bg-inverse-surface text-inverse-on-surface w-64 shrink-0 border-r border-outline-variant/30">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-outline-variant/20 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-2xl bg-tertiary-fixed/20 flex items-center justify-center text-tertiary-fixed">
-          <span className="material-symbols-outlined text-2xl">spa</span>
-        </div>
+      <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center gap-3">
+        <img
+          src="/logo.png"
+          alt="Krishnavedic"
+          className="h-10 w-auto object-contain rounded-lg"
+        />
         <div>
           <p className="font-serif text-sm font-bold text-on-primary tracking-wide">Krishnavedic</p>
           <p className="text-[10px] text-outline-variant uppercase tracking-widest font-semibold">Master Milling Suite</p>
