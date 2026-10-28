@@ -2,6 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, useInView, useAnimation, AnimatePresence } from 'framer-motion';
+import {
+  ArrowRight,
+  ChevronDown,
+  Leaf,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  RotateCw,
+  Layers,
+  Droplets,
+  Star,
+  CheckCircle2,
+} from 'lucide-react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
@@ -233,9 +246,7 @@ export default function HomePage() {
                 className="group bg-[#6e3418] text-white px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide uppercase hover:bg-[#8b4b2d] transition-all shadow-lg hover:shadow-amber-900/30 active:scale-95 flex items-center gap-2"
               >
                 <span>Shop the Pantry</span>
-                <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">
-                  arrow_forward
-                </span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/about"
@@ -255,7 +266,7 @@ export default function HomePage() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 text-white/50"
         >
           <span className="text-[10px] uppercase tracking-widest">Scroll</span>
-          <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+          <ChevronDown className="w-4 h-4" />
         </motion.div>
       </section>
 
@@ -265,21 +276,24 @@ export default function HomePage() {
       <section className="w-full bg-[#3f674f] py-4 px-4 border-b border-[#2d4d3a] overflow-hidden">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           {[
-            { icon: 'eco', label: '100% Wood-Pressed', sub: 'Below 38°C · No heat' },
-            { icon: 'verified', label: 'Zero Chemicals', sub: 'No refining · No additives' },
-            { icon: 'grain', label: 'Stone-Ground Spices', sub: 'Natural stone chakki' },
-            { icon: 'local_shipping', label: 'Pan-India Delivery', sub: 'Food-grade packaging' },
-          ].map((p, i) => (
-            <AnimatedSection key={p.label} delay={i * 0.1} className="flex items-center gap-3 py-3">
-              <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-lg text-amber-300">{p.icon}</span>
-              </div>
-              <div>
-                <p className="text-xs font-bold text-white">{p.label}</p>
-                <p className="text-[11px] text-white/60 mt-0.5">{p.sub}</p>
-              </div>
-            </AnimatedSection>
-          ))}
+            { icon: Leaf, label: '100% Wood-Pressed', sub: 'Below 38°C · No heat' },
+            { icon: ShieldCheck, label: 'Zero Chemicals', sub: 'No refining · No additives' },
+            { icon: Sparkles, label: 'Stone-Ground Spices', sub: 'Natural stone chakki' },
+            { icon: Truck, label: 'Pan-India Delivery', sub: 'Food-grade packaging' },
+          ].map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <AnimatedSection key={p.label} delay={i * 0.1} className="flex items-center gap-3 py-3">
+                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-amber-300" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">{p.label}</p>
+                  <p className="text-[11px] text-white/60 mt-0.5">{p.sub}</p>
+                </div>
+              </AnimatedSection>
+            );
+          })}
         </div>
       </section>
 
@@ -312,7 +326,6 @@ export default function HomePage() {
                 title: 'दादा-दादी का सपना',
                 titleEn: 'The Founding Dream',
                 body: 'Our great-grandparents set up the first Bel Kohlu — a massive stone oil press turned by bulls — in a small courtyard in Jaipur. Every drop of oil carried their sweat, faith, and the promise of purity.',
-                icon: '🐂',
                 img: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
               },
               {
@@ -320,7 +333,6 @@ export default function HomePage() {
                 title: 'परंपरा की निरंतरता',
                 titleEn: 'The Tradition Continues',
                 body: 'The next generation grew up watching the bulls circle the kohlu at dawn. They learned that slow rotation — just 14 RPM — keeps the oil cool, fragrant, and alive with nutrients that factory machines destroy.',
-                icon: '🌿',
                 img: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
               },
               {
@@ -328,17 +340,13 @@ export default function HomePage() {
                 title: 'आपके घर तक',
                 titleEn: 'From Our Mill to Your Kitchen',
                 body: 'We honour every ancestor who tended this mill by bringing the same authentic Kachi Ghani oil, stone-ground spices, and pure A2 ghee — to homes all across India, unchanged in method, uncompromised in quality.',
-                icon: '🏡',
                 img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
               },
             ].map((item, i) => (
               <AnimatedSection key={item.decade} delay={i * 0.15} className="flex flex-col items-center text-center">
-                {/* Circle with icon */}
+                {/* Circle photo */}
                 <div className="relative z-10 w-24 h-24 rounded-full overflow-hidden border-4 border-[#fafbf5] shadow-xl mb-6 bg-[#f4f4ec]">
                   <img src={item.img} alt={item.titleEn} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
-                    <span className="text-2xl">{item.icon}</span>
-                  </div>
                 </div>
 
                 <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[#6e3418]/10 text-[#6e3418] mb-3">
@@ -409,17 +417,20 @@ export default function HomePage() {
             <AnimatedSection delay={0.5}>
               <div className="grid grid-cols-3 gap-4 pt-2">
                 {[
-                  { label: 'Bulls turn Kohlu', icon: '🐂' },
-                  { label: 'Stone cold-presses', icon: '⚙️' },
-                  { label: 'Pure oil filters', icon: '🫙' },
-                ].map((step, i) => (
-                  <div key={i} className="text-center">
-                    <div className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto text-xl mb-2">
-                      {step.icon}
+                  { label: 'Slow 14 RPM Rotation', icon: RotateCw },
+                  { label: 'Natural Stone Mortar', icon: Layers },
+                  { label: 'Pure Cold Filtration', icon: Droplets },
+                ].map((step, i) => {
+                  const StepIcon = step.icon;
+                  return (
+                    <div key={i} className="text-center">
+                      <div className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto mb-2 text-amber-300">
+                        <StepIcon className="w-5 h-5" />
+                      </div>
+                      <p className="text-[11px] text-white/70 leading-tight">{step.label}</p>
                     </div>
-                    <p className="text-[11px] text-white/60 leading-tight">{step.label}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </AnimatedSection>
           </div>
@@ -494,7 +505,7 @@ export default function HomePage() {
                       </p>
                       <div className="mt-3 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span>Explore</span>
-                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </div>
                     </div>
                   </Link>
@@ -525,9 +536,7 @@ export default function HomePage() {
               className="text-xs font-bold uppercase tracking-wider text-[#3f674f] hover:text-[#2d4d3a] flex items-center gap-1 group"
             >
               <span>View All Products</span>
-              <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">
-                arrow_forward
-              </span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
             </Link>
           </AnimatedSection>
 
@@ -672,8 +681,10 @@ export default function HomePage() {
               <AnimatedSection key={i} delay={i * 0.12}>
                 <div className="bg-[#fafbf5] p-7 sm:p-8 rounded-3xl border border-[#e5e2da] shadow-sm flex flex-col justify-between space-y-5 h-full">
                   <div className="space-y-4">
-                    <div className="flex gap-0.5 text-[#6e3418] text-sm">
-                      {'★'.repeat(review.stars)}
+                    <div className="flex gap-1 text-amber-600">
+                      {Array.from({ length: review.stars }).map((_, si) => (
+                        <Star key={si} className="w-4 h-4 fill-amber-600 text-amber-600" />
+                      ))}
                     </div>
                     <p className="text-sm text-[#53433d] leading-relaxed italic font-serif">
                       &ldquo;{review.quote}&rdquo;
@@ -684,9 +695,7 @@ export default function HomePage() {
                       <p className="font-semibold text-xs text-[#2d2a26]">{review.name}</p>
                       <p className="text-[11px] text-[#7d7567]">{review.place}</p>
                     </div>
-                    <span className="material-symbols-outlined text-base text-[#3f674f]">
-                      verified
-                    </span>
+                    <CheckCircle2 className="w-4 h-4 text-[#3f674f]" />
                   </div>
                 </div>
               </AnimatedSection>

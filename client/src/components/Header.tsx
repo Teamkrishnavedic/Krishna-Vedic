@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Phone, ShieldCheck, Search, X, ShoppingBag, Receipt, LogIn, LogOut, ChevronDown, ChevronUp, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { formatPrice } from '@/lib/utils';
@@ -45,14 +46,14 @@ export default function Header() {
       {/* Top Ethos / Assistance Ticker */}
       <div className="bg-[#3f674f] text-[#fafbf5] px-3 sm:px-4 text-center py-1 flex items-center justify-between text-[11px] sm:text-xs font-medium">
         <div className="hidden md:flex items-center gap-1.5 text-xs text-[#fafbf5]/90">
-          <span className="material-symbols-outlined text-sm">support_agent</span>
+          <Phone className="w-3.5 h-3.5" />
           <span>Helpdesk: {STORE_CONFIG.phone}</span>
         </div>
         <div className="mx-auto text-center tracking-wide truncate max-w-full font-medium">
-          अब खाएंगे दादी-दादी के ज़माने का तेल और मसाले 🫙
+          अब खाएंगे दादी-दादी के ज़माने का तेल और मसाले
         </div>
         <div className="hidden md:flex items-center gap-1 text-xs text-[#fafbf5]/90 font-medium">
-          <span className="material-symbols-outlined text-sm">verified</span>
+          <ShieldCheck className="w-3.5 h-3.5" />
           <span>Krishna Vedic</span>
         </div>
       </div>
@@ -92,9 +93,7 @@ export default function Header() {
             onClick={() => setSearchOpen(!searchOpen)}
             className="hidden md:flex w-10 h-10 rounded-full items-center justify-center text-[#52443c] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors cursor-pointer border border-transparent hover:border-[#e5e2da]"
           >
-            <span className="material-symbols-outlined text-xl">
-              {searchOpen ? 'close' : 'search'}
-            </span>
+            {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
           </button>
 
           {/* Cart Bag Pill (Desktop & Tablet) */}
@@ -103,7 +102,7 @@ export default function Header() {
             onClick={openCart}
             className="hidden md:flex items-center gap-2 bg-[#6e3418] hover:bg-[#522510] px-3.5 sm:px-4 py-2 text-[#fafbf5] rounded-full transition-all duration-200 relative cursor-pointer shadow-sm active:scale-95"
           >
-            <span className="material-symbols-outlined text-lg">shopping_bag</span>
+            <ShoppingBag className="w-4 h-4" />
             <span className="font-label-md text-xs tracking-wider uppercase font-semibold">
               {formatPrice(cart?.subtotal || 0)}
             </span>
@@ -117,9 +116,9 @@ export default function Header() {
           {/* 1. "My Orders" Button */}
           <Link
             to="/account/orders"
-            className="flex items-center gap-1 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
+            className="flex items-center gap-1.5 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
           >
-            <span className="material-symbols-outlined text-base">receipt_long</span>
+            <Receipt className="w-3.5 h-3.5" />
             <span className="hidden xs:inline">Orders</span>
           </Link>
 
@@ -137,9 +136,11 @@ export default function Header() {
                 <span className="max-w-[55px] sm:max-w-[90px] truncate">
                   {user?.name?.split(' ')[0] || 'Account'}
                 </span>
-                <span className="material-symbols-outlined text-xs sm:text-sm">
-                  {userDropdownOpen ? 'expand_less' : 'expand_more'}
-                </span>
+                {userDropdownOpen ? (
+                  <ChevronUp className="w-3.5 h-3.5" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5" />
+                )}
               </button>
 
               {userDropdownOpen && (
@@ -158,7 +159,7 @@ export default function Header() {
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-[#2d2a26] hover:bg-[#f4f4ec] hover:text-[#6e3418] font-medium"
                     >
-                      <span className="material-symbols-outlined text-base">person</span>
+                      <User className="w-3.5 h-3.5" />
                       <span>Account Details</span>
                     </Link>
                     <Link
@@ -166,7 +167,7 @@ export default function Header() {
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-[#2d2a26] hover:bg-[#f4f4ec] hover:text-[#6e3418] font-medium"
                     >
-                      <span className="material-symbols-outlined text-base">receipt_long</span>
+                      <Receipt className="w-3.5 h-3.5" />
                       <span>Order History</span>
                     </Link>
                     <button
@@ -174,7 +175,7 @@ export default function Header() {
                       onClick={handleLogout}
                       className="w-full text-left flex items-center gap-2 px-4 py-2 text-[#b91c1c] hover:bg-[#fee2e2] font-semibold border-t border-[#e5e2da] cursor-pointer mt-1"
                     >
-                      <span className="material-symbols-outlined text-base">logout</span>
+                      <LogOut className="w-3.5 h-3.5" />
                       <span>Log Out</span>
                     </button>
                   </div>
@@ -184,9 +185,9 @@ export default function Header() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-1 bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
+              className="flex items-center gap-1.5 bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] px-2.5 sm:px-3.5 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs shrink-0"
             >
-              <span className="material-symbols-outlined text-base">person</span>
+              <LogIn className="w-3.5 h-3.5" />
               <span className="whitespace-nowrap">Sign In</span>
             </Link>
           )}
@@ -206,9 +207,7 @@ export default function Header() {
                 placeholder="Search bull-driven oils, kachi ghani, stone haldi, spices..."
                 className="w-full bg-[#fafbf5] border border-[#e5e2da] rounded-full py-2.5 pl-11 pr-4 text-sm text-[#2d2a26] focus:outline-none focus:border-[#6e3418] focus:ring-1 focus:ring-[#6e3418]"
               />
-              <span className="material-symbols-outlined absolute left-3.5 top-2.5 text-[#7d7567] text-lg">
-                search
-              </span>
+              <Search className="absolute left-3.5 top-3 text-[#7d7567] w-4 h-4" />
             </div>
             <button
               type="submit"
