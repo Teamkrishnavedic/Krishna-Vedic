@@ -32,6 +32,7 @@ const productSelect = {
   ingredients: true,
   storageInstructions: true,
   createdAt: true,
+  categoryId: true,
   category: { select: { id: true, name: true, slug: true } },
   variants: { select: variantSelect, orderBy: { sortOrder: 'asc' as const } },
   images: {
@@ -58,9 +59,20 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const where: any = { status: 'PUBLISHED' };
 
-    if (category) {
-      const cat = await prisma.category.findUnique({ where: { slug: category as string } });
-      if (cat) where.categoryId = cat.id;
+    if (category && category !== 'all') {
+      const cat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { slug: category as string },
+            { id: category as string },
+          ],
+        },
+      });
+      if (cat) {
+        where.categoryId = cat.id;
+      } else {
+        where.categoryId = category as string;
+      }
     }
 
     if (featured === 'true') where.isFeatured = true;
