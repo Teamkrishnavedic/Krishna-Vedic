@@ -25,12 +25,10 @@ export default function Header() {
   };
 
   const navLinks = [
-    { label: 'Products', to: '/categories' },
-    { label: 'Wood-Pressed Oils', to: '/shop/cold-pressed-oils' },
-    { label: 'Stone-Ground Spices', to: '/shop/ground-spices' },
-    { label: 'Masala Blends', to: '/shop/masala-blends' },
+    { label: 'Products', to: '/products' },
     { label: 'Our Heritage', to: '/about' },
     { label: 'Contact & Care', to: '/contact' },
+    { label: 'My Orders', to: '/account/orders' },
   ];
 
   return (
@@ -78,12 +76,21 @@ export default function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Search Toggle Button */}
+          {/* Mobile Direct Contact Button (Replaces redundant search & basket on mobile) */}
+          <Link
+            to="/contact"
+            className="flex md:hidden items-center gap-1.5 bg-[#f4f4ec] text-[#6e3418] hover:bg-[#6e3418] hover:text-[#fafbf5] border border-[#e5e2da] px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all active:scale-95 shadow-xs"
+          >
+            <span className="material-symbols-outlined text-base">support_agent</span>
+            <span>Contact</span>
+          </Link>
+
+          {/* Search Toggle Button (Desktop & Tablet) */}
           <button
             type="button"
             aria-label="Search catalogue"
             onClick={() => setSearchOpen(!searchOpen)}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-[#52443c] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors cursor-pointer border border-transparent hover:border-[#e5e2da]"
+            className="hidden md:flex w-10 h-10 rounded-full items-center justify-center text-[#52443c] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors cursor-pointer border border-transparent hover:border-[#e5e2da]"
           >
             <span className="material-symbols-outlined text-xl">
               {searchOpen ? 'close' : 'search'}
@@ -113,14 +120,14 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Cart Bag Pill with smooth curved borders */}
+          {/* Cart Bag Pill (Desktop & Tablet) */}
           <button
             type="button"
             onClick={openCart}
-            className="flex items-center gap-2 bg-[#6e3418] hover:bg-[#522510] px-3.5 sm:px-4 py-2 text-[#fafbf5] rounded-full transition-all duration-200 relative cursor-pointer shadow-sm active:scale-95"
+            className="hidden md:flex items-center gap-2 bg-[#6e3418] hover:bg-[#522510] px-3.5 sm:px-4 py-2 text-[#fafbf5] rounded-full transition-all duration-200 relative cursor-pointer shadow-sm active:scale-95"
           >
             <span className="material-symbols-outlined text-lg">shopping_bag</span>
-            <span className="font-label-md text-xs tracking-wider uppercase font-semibold hidden md:inline">
+            <span className="font-label-md text-xs tracking-wider uppercase font-semibold">
               {formatPrice(cart?.subtotal || 0)}
             </span>
             {itemCount > 0 && (
@@ -130,14 +137,14 @@ export default function Header() {
             )}
           </button>
 
-          {/* Mobile hamburger */}
+          {/* Mobile hamburger menu */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="xl:hidden w-10 h-10 rounded-full flex items-center justify-center text-[#2d2a26] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors border border-[#e5e2da]"
+            className="xl:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-[#2d2a26] hover:text-[#6e3418] hover:bg-[#f4f4ec] transition-colors border border-[#e5e2da]"
             aria-label="Toggle menu"
           >
-            <span className="material-symbols-outlined text-2xl">
+            <span className="material-symbols-outlined text-xl sm:text-2xl">
               {mobileMenuOpen ? 'close' : 'menu'}
             </span>
           </button>

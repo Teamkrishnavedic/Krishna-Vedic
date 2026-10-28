@@ -32,9 +32,9 @@ export default function MobileBottomNav() {
 
         {/* Products / Categories Catalog (Amazon style) */}
         <NavLink
-          to="/categories"
+          to="/products"
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
-            isCurrent('/categories') || isCurrent('/shop')
+            isCurrent('/products') || isCurrent('/categories') || isCurrent('/shop')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
               : 'text-[#7d7567] hover:text-[#2d2a26]'
           }`}
