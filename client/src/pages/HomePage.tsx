@@ -10,10 +10,20 @@ export default function HomePage() {
   const { addItem } = useCart();
   const { toast } = useToast();
 
-  const { data: productsData, isLoading } = useQuery({
-    queryKey: ['home-products'],
+  // 1. Real Bestsellers: Dynamic algorithm based on cumulative units sold
+  const { data: bestsellersData, isLoading: isBestsellersLoading } = useQuery({
+    queryKey: ['home-bestsellers'],
     queryFn: async () => {
-      const res = await api.get('/products?limit=8');
+      const res = await api.get('/products/bestsellers?limit=4');
+      return res.data;
+    },
+  });
+
+  // 2. Real Categories from Database
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
+    queryKey: ['home-categories'],
+    queryFn: async () => {
+      const res = await api.get('/categories');
       return res.data;
     },
   });
@@ -35,7 +45,19 @@ export default function HomePage() {
     }
   };
 
-  const products = productsData?.products || [];
+  const bestsellers = bestsellersData?.products || [];
+  // Filter top categories with products or active parent categories
+  const categories = (categoriesData?.categories || [])
+    .filter((c: any) => c._count?.products > 0 || !c.parentId)
+    .slice(0, 4);
+
+  // Graceful curated fallbacks for category images if admin hasn't uploaded one
+  const getCategoryFallbackImage = (slug: string) => {
+    if (slug.includes('oil')) return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+    if (slug.includes('ground') || slug.includes('powder')) return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80';
+    if (slug.includes('masala') || slug.includes('blend')) return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
+    return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=800&q=80';
+  };
 
   return (
     <div className="flex flex-col w-full bg-[#fafbf5] text-[#2d2a26]">
@@ -172,128 +194,58 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Category 1 */}
-            <Link
-              to="/shop/cold-pressed-oils"
-              className="group bg-[#fafbf5] border border-[#e5e2da] rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
-            >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-[#f4f4ec]">
-                <img
-                  src="https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80"
-                  alt="Cold pressed oils"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+            {isCategoriesLoading ? (
+              <div className="col-span-full py-12 text-center text-[#7d7567] font-serif">
+                Loading pantry categories...
               </div>
-              <div className="p-6 flex flex-col justify-between flex-grow">
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors">
-                    Wood-Pressed Oils
-                  </h3>
-                  <p className="text-xs text-[#7d7567] mt-1.5 leading-relaxed">
-                    Mustard, Groundnut, Sesame, and Coconut oils pressed in traditional Mara Chekku ghanis.
-                  </p>
-                </div>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#3f674f]">
-                  <span>Explore Oils</span>
-                  <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </span>
-              </div>
-            </Link>
-
-            {/* Category 2 */}
-            <Link
-              to="/shop/ground-spices"
-              className="group bg-[#fafbf5] border border-[#e5e2da] rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
-            >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-[#f4f4ec]">
-                <img
-                  src="https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80"
-                  alt="Stone ground turmeric and chilli"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6 flex flex-col justify-between flex-grow">
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors">
-                    Stone-Ground Spices
-                  </h3>
-                  <p className="text-xs text-[#7d7567] mt-1.5 leading-relaxed">
-                    Single-origin Turmeric, Byadagi Chilli, Coriander, and Cumin ground at low RPM.
-                  </p>
-                </div>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#3f674f]">
-                  <span>Explore Spices</span>
-                  <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </span>
-              </div>
-            </Link>
-
-            {/* Category 3 */}
-            <Link
-              to="/shop/masala-blends"
-              className="group bg-[#fafbf5] border border-[#e5e2da] rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
-            >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-[#f4f4ec]">
-                <img
-                  src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80"
-                  alt="Traditional masala blends"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6 flex flex-col justify-between flex-grow">
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors">
-                    Heritage Masalas
-                  </h3>
-                  <p className="text-xs text-[#7d7567] mt-1.5 leading-relaxed">
-                    Royal Garam Masala, Kitchen King, Sambhar Podi, and aromatic Biryani formulations.
-                  </p>
-                </div>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#3f674f]">
-                  <span>Explore Blends</span>
-                  <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </span>
-              </div>
-            </Link>
-
-            {/* Category 4 */}
-            <Link
-              to="/shop/whole-spices"
-              className="group bg-[#fafbf5] border border-[#e5e2da] rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
-            >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-[#f4f4ec]">
-                <img
-                  src="https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=800&q=80"
-                  alt="Sun dried whole spices"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6 flex flex-col justify-between flex-grow">
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors">
-                    Whole Spices
-                  </h3>
-                  <p className="text-xs text-[#7d7567] mt-1.5 leading-relaxed">
-                    Hand-sorted cumin seeds, cardamom pods, black peppercorns, and cinnamon bark.
-                  </p>
-                </div>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#3f674f]">
-                  <span>Explore Whole</span>
-                  <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
-                </span>
-              </div>
-            </Link>
+            ) : (
+              categories.map((cat: any) => (
+                <Link
+                  key={cat.id}
+                  to={`/shop?category=${cat.slug}`}
+                  className="group bg-[#fafbf5] border border-[#e5e2da] rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col"
+                >
+                  <div className="aspect-[4/3] w-full overflow-hidden bg-[#f4f4ec]">
+                    <img
+                      src={cat.imageUrl || getCategoryFallbackImage(cat.slug)}
+                      alt={cat.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-6 flex flex-col justify-between flex-grow">
+                    <div>
+                      <h3 className="font-serif text-xl font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors">
+                        {cat.name}
+                      </h3>
+                      <p className="text-xs text-[#7d7567] mt-1.5 leading-relaxed line-clamp-2">
+                        {cat.description || 'Ethically sourced and traditionally crafted pantry essentials.'}
+                      </p>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-[#7d7567]">
+                        {cat._count?.products || 0} {cat._count?.products === 1 ? 'Product' : 'Products'}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#3f674f]">
+                        <span>Explore</span>
+                        <span className="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </section>
 
-      {/* ─── 4. Featured Bestsellers Grid ─────────────────────────────────── */}
+      {/* ─── 4. Featured Bestsellers Grid (Real Sales Algorithm) ─────────── */}
       <section className="w-full py-16 md:py-24 px-4 md:px-12 bg-[#f4f4ec]/40 border-t border-b border-[#e5e2da]">
         <div className="max-w-7xl mx-auto space-y-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <span className="text-xs uppercase tracking-widest text-[#6e3418] font-bold">
-                Daily Essentials
+              <span className="text-xs uppercase tracking-widest text-[#6e3418] font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#6e3418] animate-pulse" />
+                <span>Highest-Selling Essentials</span>
               </span>
               <h2 className="font-serif text-3xl sm:text-4xl text-[#2d2a26] mt-1">
                 Pantry Bestsellers
@@ -309,13 +261,17 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {isLoading ? (
+          {isBestsellersLoading ? (
             <div className="py-20 text-center text-[#7d7567] font-serif">
               Loading fresh harvest items...
             </div>
+          ) : bestsellers.length === 0 ? (
+            <div className="py-20 text-center text-[#7d7567] font-serif">
+              No products found.
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.slice(0, 4).map((product: any) => (
+              {bestsellers.map((product: any) => (
                 <ProductCard
                   key={product.id}
                   product={product}

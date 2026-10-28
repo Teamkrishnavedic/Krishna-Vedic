@@ -22,6 +22,7 @@ interface Product {
   category?: { name: string; slug: string };
   images: any[];
   variants?: Variant[];
+  unitsSold?: number;
 }
 
 interface ProductCardProps {
@@ -158,9 +159,19 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             }}
           />
         </Link>
-        <span className="absolute top-3 left-3 bg-[#3f674f] text-[#fafbf5] font-label-sm text-[11px] uppercase tracking-wider px-3 py-1 rounded-full font-semibold">
-          100% Mara Chekku
-        </span>
+        {product.unitsSold && product.unitsSold > 0 ? (
+          <span className="absolute top-3 left-3 bg-[#6e3418] text-[#fafbf5] text-[11px] uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-sm">
+            Bestseller • {product.unitsSold} sold
+          </span>
+        ) : (
+          <span className="absolute top-3 left-3 bg-[#3f674f] text-[#fafbf5] font-label-sm text-[11px] uppercase tracking-wider px-3 py-1 rounded-full font-semibold">
+            {product.name.toLowerCase().includes('oil')
+              ? 'Wood-Pressed'
+              : product.name.toLowerCase().includes('masala')
+              ? 'Heritage Blend'
+              : 'Stone-Ground'}
+          </span>
+        )}
         <span className="absolute top-3 right-3 bg-[#fafbf5]/95 text-[#6e3418] font-label-sm text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#e5e2da]">
           {originTag}
         </span>

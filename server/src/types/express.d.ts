@@ -12,3 +12,4 @@ declare module 'qs' {
     [key: string]: any;
   }
 }
+

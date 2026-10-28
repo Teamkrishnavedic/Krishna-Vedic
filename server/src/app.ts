@@ -82,7 +82,15 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-      if (!origin || allowedOrigins.includes(origin) || (!isProduction && origin.startsWith('http://localhost:'))) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        (!isProduction && (
+          origin.startsWith('http://localhost:') ||
+          origin.startsWith('http://127.0.0.1:') ||
+          /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
+        ))
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS policy'));

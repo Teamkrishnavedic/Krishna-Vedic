@@ -109,6 +109,72 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+// GET /api/products/bestsellers
+// Calculates true bestsellers based on cumulative units sold across valid customer orders
+router.get('/bestsellers', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const limit = Math.min(parseInt((req.query.limit as string) || '4', 10), 20);
+
+    // 1. Group all sold OrderItems across non-cancelled, non-refunded orders
+    const salesByVariant = await prisma.orderItem.groupBy({
+      by: ['variantId'],
+      _sum: { quantity: true },
+      where: {
+        variantId: { not: null },
+        order: {
+          status: { notIn: ['CANCELLED', 'REFUNDED'] },
+        },
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc',
+        },
+      },
+    });
+
+    // 2. Map sold quantities to product IDs
+    const productSalesMap = new Map<string, number>();
+    for (const item of salesByVariant) {
+      if (item.variantId && item._sum.quantity) {
+        const variant = await prisma.productVariant.findUnique({
+          where: { id: item.variantId },
+          select: { productId: true },
+        });
+        if (variant?.productId) {
+          const current = productSalesMap.get(variant.productId) || 0;
+          productSalesMap.set(variant.productId, current + item._sum.quantity);
+        }
+      }
+    }
+
+    // 3. Fetch published products
+    const publishedProducts = await prisma.product.findMany({
+      where: { status: 'PUBLISHED' },
+      select: productSelect,
+    });
+
+    // 4. Sort strictly by actual units sold (descending).
+    // If sales are 0 or tied (e.g. brand new catalog items), fallback to featured / newest.
+    const sortedProducts = publishedProducts
+      .map((p) => ({
+        ...p,
+        unitsSold: productSalesMap.get(p.id) || 0,
+      }))
+      .sort((a, b) => {
+        if (b.unitsSold !== a.unitsSold) {
+          return b.unitsSold - a.unitsSold; // Highest sales always ranks first!
+        }
+        return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
+      });
+
+    const bestsellers = sortedProducts.slice(0, limit);
+
+    res.json({ products: bestsellers });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/products/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
