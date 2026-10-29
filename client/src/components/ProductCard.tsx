@@ -42,10 +42,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     variants.find((v) => v.id === selectedVariantId) || variants[0] || null;
 
   const currentPrice = currentVariant ? currentVariant.price : 0;
+  const isPricePending = currentPrice <= 0;
   const compareAtPrice = currentVariant?.compareAtPrice;
-  const isOutOfStock = currentVariant
+  const isOutOfStock = isPricePending || (currentVariant
     ? (currentVariant.stock ?? currentVariant.inventoryQty ?? 1) <= 0
-    : false;
+    : false);
 
   // Safe image URL resolver with authentic artisanal fallbacks
   const getImageUrl = () => {
@@ -183,50 +184,65 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         {/* ─── 4. Price & Action ───────────────────────────────────── */}
         <div className="pt-2 border-t border-[#e5e2da] flex items-center justify-between gap-2">
           <div className="flex flex-col min-w-0">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="font-sans text-base sm:text-lg font-bold text-[#2d2a26] tracking-tight">
-                {formatPrice(currentPrice)}
+            {isPricePending ? (
+              <span className="font-serif text-xs sm:text-sm font-semibold text-[#854d0e] bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 inline-block">
+                Price on Request
               </span>
-              {compareAtPrice && compareAtPrice > currentPrice && (
-                <span className="font-sans text-xs text-[#7d7567] line-through">
-                  {formatPrice(compareAtPrice)}
+            ) : (
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-sans text-base sm:text-lg font-bold text-[#2d2a26] tracking-tight">
+                  {formatPrice(currentPrice)}
                 </span>
-              )}
-            </div>
-            {variants.length === 1 && (
+                {compareAtPrice && compareAtPrice > currentPrice && (
+                  <span className="font-sans text-xs text-[#7d7567] line-through">
+                    {formatPrice(compareAtPrice)}
+                  </span>
+                )}
+              </div>
+            )}
+            {variants.length === 1 && !isPricePending && (
               <span className="text-[10px] text-[#7d7567] font-medium truncate">
                 {variants[0].name || variants[0].title}
               </span>
             )}
           </div>
 
-          {/* Quick Add Button */}
-          <button
-            type="button"
-            disabled={isOutOfStock}
-            onClick={handleAdd}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 ${
-              isOutOfStock
-                ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                : added
-                ? 'bg-[#3f674f] text-[#fafbf5]'
-                : 'bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] shadow-xs'
-            }`}
-          >
-            {isOutOfStock ? (
-              <span className="text-[10px]">Sold Out</span>
-            ) : added ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Added</span>
-              </>
-            ) : (
-              <>
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add</span>
-              </>
-            )}
-          </button>
+          {/* Quick Add Button or Inquire link */}
+          {isPricePending ? (
+            <Link
+              to={`/products/${product.slug}`}
+              className="px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-[#f4f4ec] hover:bg-[#6e3418] text-[#52443c] hover:text-[#fafbf5] border border-[#e5e2da] transition-all flex items-center gap-1 cursor-pointer shrink-0 shadow-2xs"
+            >
+              <span>View</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled={isOutOfStock}
+              onClick={handleAdd}
+              className={`px-3 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer active:scale-95 shrink-0 ${
+                isOutOfStock
+                  ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                  : added
+                  ? 'bg-[#3f674f] text-[#fafbf5]'
+                  : 'bg-[#6e3418] hover:bg-[#522510] text-[#fafbf5] shadow-xs'
+              }`}
+            >
+              {isOutOfStock ? (
+                <span className="text-[10px]">Sold Out</span>
+              ) : added ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Added</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </article>

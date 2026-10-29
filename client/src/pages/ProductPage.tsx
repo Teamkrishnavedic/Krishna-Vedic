@@ -122,9 +122,10 @@ export default function ProductPage() {
     ? discountPercent(currentVariant.compareAtPrice, currentVariant.price)
     : 0;
 
+  const isPricePending = !currentVariant?.price || currentVariant.price <= 0;
   const currentStock = currentVariant?.stock ?? currentVariant?.inventoryQty ?? 10;
-  const isOutOfStock = currentVariant ? currentStock <= 0 : false;
-  const isLowStock = currentVariant ? currentStock > 0 && currentStock <= 5 : false;
+  const isOutOfStock = currentVariant ? (isPricePending || currentStock <= 0) : false;
+  const isLowStock = currentVariant && !isPricePending ? currentStock > 0 && currentStock <= 5 : false;
 
   return (
     <div className="max-w-7xl mx-auto px-gutter-mobile md:px-margin py-10">
@@ -198,20 +199,31 @@ export default function ProductPage() {
 
           {/* Pricing */}
           <div className="flex items-baseline gap-3 pb-4 border-b border-outline-variant/30">
-            <span className="text-3xl font-bold text-primary font-serif">
-              {currentVariant ? formatPrice(currentVariant.price) : '0'}
-            </span>
-            {currentVariant?.compareAtPrice && currentVariant.compareAtPrice > currentVariant.price && (
+            {isPricePending ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-bold font-serif bg-amber-50 text-amber-900 border border-amber-200 px-3.5 py-1 rounded-full">
+                  Price on Request
+                </span>
+                <span className="text-xs text-on-surface-variant font-medium">Awaiting price review</span>
+              </div>
+            ) : (
               <>
-                <span className="text-base text-outline line-through">
-                  {formatPrice(currentVariant.compareAtPrice)}
+                <span className="text-3xl font-bold text-primary font-serif">
+                  {currentVariant ? formatPrice(currentVariant.price) : '0'}
                 </span>
-                <span className="text-xs font-bold text-secondary uppercase tracking-wider">
-                  Save {formatPrice(currentVariant.compareAtPrice - currentVariant.price)}
-                </span>
+                {currentVariant?.compareAtPrice && currentVariant.compareAtPrice > currentVariant.price && (
+                  <>
+                    <span className="text-base text-outline line-through">
+                      {formatPrice(currentVariant.compareAtPrice)}
+                    </span>
+                    <span className="text-xs font-bold text-secondary uppercase tracking-wider">
+                      Save {formatPrice(currentVariant.compareAtPrice - currentVariant.price)}
+                    </span>
+                  </>
+                )}
+                <span className="text-xs text-on-surface-variant ml-auto">(Inclusive of statutory taxes)</span>
               </>
             )}
-            <span className="text-xs text-on-surface-variant ml-auto">(Inclusive of statutory taxes)</span>
           </div>
 
           {/* Short description */}
@@ -271,48 +283,67 @@ export default function ProductPage() {
 
           {/* Quantity and Actions with smooth curves */}
           <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-outline-variant/40 bg-surface-container-low rounded-full px-1">
-                <button
-                  type="button"
-                  disabled={quantity <= 1 || isOutOfStock}
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface hover:text-primary disabled:opacity-40 cursor-pointer font-bold"
+            {isPricePending ? (
+              <div className="space-y-3">
+                <a
+                  href={`https://wa.me/917976123348?text=${encodeURIComponent(`Namaste Krishna Vedic, I would like to inquire about the current selling price and availability of "${product.name}".`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white py-3.5 px-6 rounded-full font-label-md text-xs uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
                 >
-                  −
-                </button>
-                <span className="w-10 text-center font-bold text-on-surface text-sm">
-                  {quantity}
-                </span>
-                <button
-                  type="button"
-                  disabled={isOutOfStock || (currentVariant && quantity >= (currentVariant.stock ?? currentVariant.inventoryQty ?? 99))}
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface hover:text-primary disabled:opacity-40 cursor-pointer font-bold"
-                >
-                  +
-                </button>
+                  <span className="material-symbols-outlined text-base">chat</span>
+                  Inquire on WhatsApp (+91 7976123348)
+                </a>
+                <p className="text-center text-[11px] text-on-surface-variant">
+                  This product is currently undergoing seasonal price &amp; harvest weight verification at our Jaipur mill. Contact us directly for daily spot rates.
+                </p>
               </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-outline-variant/40 bg-surface-container-low rounded-full px-1">
+                    <button
+                      type="button"
+                      disabled={quantity <= 1 || isOutOfStock}
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface hover:text-primary disabled:opacity-40 cursor-pointer font-bold"
+                    >
+                      −
+                    </button>
+                    <span className="w-10 text-center font-bold text-on-surface text-sm">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isOutOfStock || (currentVariant && quantity >= (currentVariant.stock ?? currentVariant.inventoryQty ?? 99))}
+                      onClick={() => setQuantity((q) => q + 1)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-on-surface hover:text-primary disabled:opacity-40 cursor-pointer font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
 
-              <button
-                type="button"
-                disabled={isOutOfStock || isAdding}
-                onClick={() => handleAddToCart(false)}
-                className="flex-1 bg-primary hover:bg-secondary text-on-primary py-3.5 px-6 rounded-full font-label-md text-xs uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md active:scale-95"
-              >
-                <span className="material-symbols-outlined text-base">shopping_bag</span>
-                {isAdding ? 'Adding...' : 'Add to Basket'}
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    disabled={isOutOfStock || isAdding}
+                    onClick={() => handleAddToCart(false)}
+                    className="flex-1 bg-primary hover:bg-secondary text-on-primary py-3.5 px-6 rounded-full font-label-md text-xs uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-base">shopping_bag</span>
+                    {isAdding ? 'Adding...' : 'Add to Basket'}
+                  </button>
+                </div>
 
-            <button
-              type="button"
-              disabled={isOutOfStock || isAdding}
-              onClick={() => handleAddToCart(true)}
-              className="w-full py-3.5 px-6 font-label-md text-xs uppercase tracking-wider font-semibold rounded-full border border-primary text-primary hover:bg-primary hover:text-on-primary transition-all text-center cursor-pointer shadow-xs active:scale-95"
-            >
-              Buy Now with 1-Click
-            </button>
+                <button
+                  type="button"
+                  disabled={isOutOfStock || isAdding}
+                  onClick={() => handleAddToCart(true)}
+                  className="w-full py-3.5 px-6 font-label-md text-xs uppercase tracking-wider font-semibold rounded-full border border-primary text-primary hover:bg-primary hover:text-on-primary transition-all text-center cursor-pointer shadow-xs active:scale-95"
+                >
+                  Buy Now with 1-Click
+                </button>
+              </>
+            )}
           </div>
 
           {/* Vedic Guarantees Specification Strip */}

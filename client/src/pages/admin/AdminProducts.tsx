@@ -13,7 +13,7 @@ export default function AdminProducts() {
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['admin-products', search, selectedCategory],
     queryFn: async () => {
-      let url = `/admin/products?limit=50`;
+      let url = `/admin/products?limit=100`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (selectedCategory) url += `&categoryId=${selectedCategory}`;
       const res = await api.get(url);
@@ -221,20 +221,45 @@ export default function AdminProducts() {
                         {p.sku}
                       </td>
 
-                      {/* Variants */}
+                      {/* Variants & Live Price */}
                       <td className="py-3.5 px-4 text-[#52443c]">
-                        <span className="font-semibold">{p.variants?.length || 0}</span> pack size(s)
+                        {p.variants?.[0]?.price > 0 ? (
+                          <div>
+                            <span className="font-bold text-[#2d2a26]">
+                              ₹{(p.variants[0].price / 100).toLocaleString('en-IN')}
+                            </span>
+                            <span className="text-[11px] text-[#7d7567] ml-1">
+                              / {p.variants[0].name}
+                            </span>
+                            {p.variants.length > 1 && (
+                              <div className="text-[10px] text-[#7d7567]">
+                                +{p.variants.length - 1} other pack(s)
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                            Awaiting Price
+                          </span>
+                        )}
                       </td>
 
                       {/* Status */}
                       <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${
-                          p.status === 'PUBLISHED'
-                            ? 'bg-[#3f674f] text-[#fafbf5]'
-                            : 'bg-[#f4f4ec] text-[#7d7567] border border-[#e5e2da]'
-                        }`}>
-                          {p.status}
-                        </span>
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${
+                            p.status === 'PUBLISHED'
+                              ? 'bg-[#3f674f] text-[#fafbf5]'
+                              : 'bg-[#f4f4ec] text-[#7d7567] border border-[#e5e2da]'
+                          }`}>
+                            {p.status}
+                          </span>
+                          {p.variants?.some((v: any) => !v.price || v.price === 0) && (
+                            <span className="text-[10px] font-semibold text-amber-700">
+                              Review Required
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Actions */}
