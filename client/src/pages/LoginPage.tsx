@@ -30,7 +30,7 @@ export default function LoginPage() {
       <div className="bg-surface-container-low p-8 border border-outline-variant/30 text-center space-y-6">
         <img
           src="/logo.png"
-          alt="Krishnavedic"
+          alt="Krishna Vedic"
           className="h-16 w-auto mx-auto object-contain rounded-xl shadow-xs"
         />
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
         </div>
 
         <div className="pt-4 border-t border-outline-variant/30 text-[11px] text-outline space-y-1">
-          <p>By signing in, you agree to Krishnavedic's terms of service and privacy policy.</p>
+          <p>By signing in, you agree to Krishna Vedic's terms of service and privacy policy.</p>
         </div>
       </div>
 

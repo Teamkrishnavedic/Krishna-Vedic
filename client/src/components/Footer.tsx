@@ -167,7 +167,7 @@ export default function Footer() {
             </span>
           </div>
           <div className="text-center md:text-right text-xs">
-            © 2026 Krishnavedic Heritage Foods Pvt Ltd. Crafted with reverence.
+            © 2026 Krishna Vedic Heritage Foods Pvt Ltd. Crafted with reverence.
           </div>
         </div>
       </div>

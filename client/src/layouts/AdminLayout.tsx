@@ -34,12 +34,15 @@ export default function AdminLayout() {
       <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center gap-3">
         <img
           src="/logo.png"
-          alt="Krishnavedic"
+          alt="Krishna Vedic"
           className="h-10 w-auto object-contain rounded-lg"
         />
         <div>
-          <p className="font-serif text-sm font-bold text-on-primary tracking-wide">Krishnavedic</p>
-          <p className="text-[10px] text-outline-variant uppercase tracking-widest font-semibold">Master Milling Suite</p>
+          <p className="font-serif text-sm tracking-wide leading-none flex items-baseline gap-1">
+            <span className="font-bold text-white uppercase tracking-[0.05em]">Krishna</span>
+            <span className="font-semibold text-[#a5d1b3] uppercase tracking-[0.12em]">Vedic</span>
+          </p>
+          <p className="text-[10px] text-outline-variant uppercase tracking-widest font-semibold mt-1">Master Milling Suite</p>
         </div>
       </div>
 

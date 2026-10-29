@@ -37,7 +37,7 @@ export default function AdminLogin() {
           <span className="material-symbols-outlined text-3xl">verified_user</span>
         </div>
         <h2 className="font-serif text-3xl font-bold tracking-tight text-white">
-          Krishnavedic Admin Portal
+          Krishna Vedic Admin Portal
         </h2>
         <p className="mt-2 text-xs text-outline-variant">
           Master Milling Ledger &amp; Store Operations

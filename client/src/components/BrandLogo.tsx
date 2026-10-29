@@ -53,16 +53,19 @@ export default function BrandLogo({
         loading="eager"
       />
 
-      {/* 2. Brand Name Typography */}
+      {/* 2. Brand Name Typography: Handcrafted Artisanal Dual-Tone */}
       <div className="flex flex-col text-left leading-none">
-        <span
-          className={`font-serif ${titleSize} tracking-tight font-bold text-[#6e3418] uppercase leading-none`}
-        >
-          Krishnavedic
-        </span>
+        <div className={`flex items-baseline gap-1.5 sm:gap-2 font-serif ${titleSize} leading-none`}>
+          <span className="font-bold text-[#6e3418] uppercase tracking-[0.06em]">
+            Krishna
+          </span>
+          <span className="font-semibold text-[#3f674f] uppercase tracking-[0.14em]">
+            Vedic
+          </span>
+        </div>
         {showSubtitle && (
           <span
-            className={`hidden xs:inline font-sans ${subSize} uppercase tracking-widest text-[#7d7567] font-semibold mt-0.5 leading-none`}
+            className={`hidden xs:inline font-sans ${subSize} uppercase tracking-[0.18em] text-[#7d7567] font-semibold mt-1 leading-none`}
           >
             Bull-Driven Oils &amp; Spices
           </span>

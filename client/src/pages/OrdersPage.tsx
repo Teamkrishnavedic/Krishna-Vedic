@@ -36,7 +36,7 @@ export default function OrdersPage() {
         <div className="text-center py-16 bg-surface-container-low border border-outline-variant/30 space-y-3">
           <span className="material-symbols-outlined text-4xl text-outline mb-2">package_2</span>
           <h2 className="font-serif text-2xl text-on-surface">No Orders Found</h2>
-          <p className="text-on-surface-variant text-xs mb-4">You have not placed any orders with Krishnavedic yet.</p>
+          <p className="text-on-surface-variant text-xs mb-4">You have not placed any orders with Krishna Vedic yet.</p>
           <Link
             to="/shop"
             className="inline-block bg-primary text-on-primary px-6 py-2.5 font-label-md text-label-md uppercase tracking-wider hover:bg-secondary transition-colors"

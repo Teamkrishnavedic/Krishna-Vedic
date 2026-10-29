@@ -14,7 +14,7 @@ export default function RegisterPage() {
     <div className="max-w-md mx-auto px-gutter-mobile py-20">
       <div className="text-center mb-8 space-y-1">
         <span className="font-label-md text-label-md uppercase tracking-widest text-secondary font-bold">
-          Join Krishnavedic
+          Join Krishna Vedic
         </span>
         <h1 className="font-headline-lg text-headline-lg font-serif text-primary">
           Create an Account
@@ -46,7 +46,7 @@ export default function RegisterPage() {
                   try {
                     await loginWithGoogle(credentialResponse.credential);
                     toast({
-                      title: 'Welcome to Krishnavedic',
+                      title: 'Welcome to Krishna Vedic',
                       description: 'Account registered and signed in with Google',
                       variant: 'success',
                     });

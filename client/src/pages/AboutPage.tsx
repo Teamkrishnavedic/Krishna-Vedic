@@ -14,7 +14,7 @@ export default function AboutPage() {
             Reviving Sacred Vedic Nutrition for the Modern Indian Kitchen
           </h1>
           <p className="font-body-md text-body-md text-on-secondary/90 max-w-2xl mx-auto leading-relaxed">
-            At Krishnavedic Oil &amp; Masalas, our mission is to resurrect time-tested wooden Mara Chekku and granite chakki extraction, delivering pure, unadulterated vitality direct from our regional farmer guilds.
+            At Krishna Vedic Oil &amp; Masalas, our mission is to resurrect time-tested wooden Mara Chekku and granite chakki extraction, delivering pure, unadulterated vitality direct from our regional farmer guilds.
           </p>
         </div>
       </section>
@@ -34,7 +34,7 @@ export default function AboutPage() {
                 Over the past forty years, industrial expellers running above 120°C and chemical solvent extraction stripped Indian cooking oils of their live enzymes, natural tocopherols, and pungent volatile aromatics. Supermarket shelves became dominated by bleached, hexane-refined blends.
               </p>
               <p>
-                Krishnavedic was founded to return to authentic craft milling. We revived traditional <em>Mara Chekku</em> vats made from seasoned Albizia lebbeck (Vagai) wood, rotating slowly at 14 RPM to ensure seed temperatures never exceed 38°C.
+                Krishna Vedic was founded to return to authentic craft milling. We revived traditional <em>Mara Chekku</em> vats made from seasoned Albizia lebbeck (Vagai) wood, rotating slowly at 14 RPM to ensure seed temperatures never exceed 38°C.
               </p>
               <p>
                 No synthetic anti-foaming agents. No chemical deodorization. No artificial color dyes. Just pure single-origin seeds harvested ethically by our partner collectives across Rajasthan, Karnataka, and Tamil Nadu.

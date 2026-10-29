@@ -615,7 +615,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="font-serif text-white text-sm font-semibold">
-                      The Krishnavedic Family
+                      The Krishna Vedic Family
                     </p>
                     <p className="text-[11px] text-white/50">Krishna Vedic · Est. 2020</p>
                   </div>
@@ -715,7 +715,7 @@ export default function HomePage() {
             <div className="absolute -bottom-12 -left-12 w-36 h-36 rounded-full bg-white/5" />
 
             <span className="relative text-xs uppercase tracking-[0.2em] text-[#a5d1b3] font-bold">
-              The Krishnavedic Circle
+              The Krishna Vedic Circle
             </span>
             <h2 className="relative font-serif text-3xl sm:text-4xl">
               Pure Harvest Updates to Your Inbox

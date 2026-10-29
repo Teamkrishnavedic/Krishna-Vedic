@@ -22,7 +22,7 @@ export default function TermsPage() {
             1. Agreement to Terms
           </h2>
           <p>
-            By accessing or purchasing from Krishnavedic Oil &amp; Masalas, you agree to be bound by these Terms and Conditions and our associated delivery and returns policies.
+            By accessing or purchasing from Krishna Vedic Oil &amp; Masalas, you agree to be bound by these Terms and Conditions and our associated delivery and returns policies.
           </p>
         </section>
 

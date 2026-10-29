@@ -23,7 +23,7 @@ export default function PrivacyPage() {
             1. Information We Collect
           </h2>
           <p>
-            When you purchase products or register an account with Krishnavedic Oil &amp; Masalas, we collect personal information strictly necessary to fulfill your dispatch, including your name, email address, mobile number, delivery address, and payment confirmation tokens.
+            When you purchase products or register an account with Krishna Vedic Oil &amp; Masalas, we collect personal information strictly necessary to fulfill your dispatch, including your name, email address, mobile number, delivery address, and payment confirmation tokens.
           </p>
         </section>
 
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
             3. Payment Security &amp; Encryption
           </h2>
           <p>
-            All online financial transactions are securely processed through RBI-approved, PCI-DSS Level 1 certified payment gateways (Razorpay). Krishnavedic does not store or process your credit card numbers, CVVs, or net banking passwords on our servers.
+            All online financial transactions are securely processed through RBI-approved, PCI-DSS Level 1 certified payment gateways (Razorpay). Krishna Vedic does not store or process your credit card numbers, CVVs, or net banking passwords on our servers.
           </p>
         </section>
 
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
             5. Grievance Officer
           </h2>
           <p>
-            In accordance with Information Technology Rules, 2021, the contact details of the Grievance Officer are: Data Protection Desk, Krishnavedic Heritage Foods Pvt Ltd, Jaipur, Rajasthan. Email: {STORE_CONFIG.email}.
+            In accordance with Information Technology Rules, 2021, the contact details of the Grievance Officer are: Data Protection Desk, Krishna Vedic Heritage Foods Pvt Ltd, Jaipur, Rajasthan. Email: {STORE_CONFIG.email}.
           </p>
         </section>
       </div>
