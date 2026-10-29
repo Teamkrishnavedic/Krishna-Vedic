@@ -23,3 +23,4 @@ export function ensureDatabaseHostResolved(): void {
     console.warn('[DNS] DNS fallback resolution skipped:', e.message);
   }
 }
+

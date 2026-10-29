@@ -46,6 +46,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const {
       category,
+      categoryId,
       featured,
       search,
       page = '1',
@@ -81,7 +82,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       'khal': 'oil-cakes-khal',
     };
 
-    if (category && category !== 'all') {
+    if (categoryId) {
+      where.categoryId = categoryId as string;
+    } else if (category && category !== 'all') {
       const rawCat = (category as string).toLowerCase().trim();
       const targetSlug = CATEGORY_ALIASES[rawCat] || rawCat;
       const cat = await prisma.category.findFirst({
@@ -221,7 +224,97 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     if (!product || product.status === 'ARCHIVED') throw new AppError(404, 'Product not found');
     if (product.status === 'DRAFT') throw new AppError(404, 'Product not found');
 
-    res.json({ product });
+    // ─── Amazon-Style Recommendation Algorithm ──────────────────────────
+    // 1. Similar Products: same category first, fallback to featured catalogue
+    const sameCategory = await prisma.product.findMany({
+      where: {
+        status: 'PUBLISHED',
+        id: { not: product.id },
+        ...(product.categoryId ? { categoryId: product.categoryId } : {}),
+      },
+      select: productSelect,
+      take: 6,
+      orderBy: { isFeatured: 'desc' },
+    });
+
+    let similarProducts = [...sameCategory];
+    if (similarProducts.length < 4) {
+      const more = await prisma.product.findMany({
+        where: {
+          status: 'PUBLISHED',
+          id: { notIn: [product.id, ...similarProducts.map((p) => p.id)] },
+        },
+        select: productSelect,
+        take: 6 - similarProducts.length,
+        orderBy: { isFeatured: 'desc' },
+      });
+      similarProducts.push(...more);
+    }
+
+    // 2. Frequently Bought Together (Complementary pairing logic)
+    const currentName = product.name.toLowerCase();
+    const currentCategory = (product.category?.name || '').toLowerCase();
+
+    const pairFilter: any = {
+      status: 'PUBLISHED',
+      id: { not: product.id },
+      variants: {
+        some: {
+          price: { gt: 0 },
+        },
+      },
+    };
+
+    if (currentName.includes('oil') || currentCategory.includes('oil')) {
+      // If customer is viewing cooking oil, pair with essential spice or bilona ghee
+      pairFilter.OR = [
+        { name: { contains: 'Turmeric' } },
+        { name: { contains: 'Haldi' } },
+        { name: { contains: 'Cumin' } },
+        { name: { contains: 'Jeera' } },
+        { name: { contains: 'Ghee' } },
+      ];
+    } else if (currentName.includes('turmeric') || currentName.includes('haldi')) {
+      // Curcumin + Piperine (Pepper) Ayurvedic absorption synergy or traditional Mustard Oil
+      pairFilter.OR = [
+        { name: { contains: 'Pepper' } },
+        { name: { contains: 'Kali Mirch' } },
+        { name: { contains: 'Mustard' } },
+        { name: { contains: 'Sarson' } },
+      ];
+    } else if (currentCategory.includes('spice') || currentName.includes('masala')) {
+      // If viewing spice, pair with pure cold-pressed oil
+      pairFilter.OR = [
+        { name: { contains: 'Mustard' } },
+        { name: { contains: 'Sarson' } },
+        { name: { contains: 'Sesame' } },
+        { name: { contains: 'Til' } },
+        { name: { contains: 'Ghee' } },
+      ];
+    } else {
+      // Fallback: Pick top featured product from a different category
+      if (product.categoryId) {
+        pairFilter.categoryId = { not: product.categoryId };
+      }
+    }
+
+    let frequentlyBoughtTogether = await prisma.product.findFirst({
+      where: pairFilter,
+      select: productSelect,
+      orderBy: { isFeatured: 'desc' },
+    });
+
+    if (!frequentlyBoughtTogether) {
+      frequentlyBoughtTogether = similarProducts.find((p) => p.variants?.some((v) => v.price > 0)) || similarProducts[0] || null;
+    }
+
+    res.json({
+      product,
+      recommendations: {
+        similarProducts,
+        frequentlyBoughtTogether,
+      },
+    });
   } catch (err) {
     next(err);
   }
