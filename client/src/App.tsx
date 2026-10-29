@@ -10,6 +10,7 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 // Layouts
 import StorefrontLayout from '@/layouts/StorefrontLayout';
 import AdminLayout from '@/layouts/AdminLayout';
+import ScrollToTop from '@/components/ScrollToTop';
 
 // Storefront pages
 import HomePage from '@/pages/HomePage';
@@ -70,6 +71,7 @@ function RequireAdmin({ children }: { children: React.ReactNode }) {
 export default function App() {
   const tree = (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <ToastProvider>

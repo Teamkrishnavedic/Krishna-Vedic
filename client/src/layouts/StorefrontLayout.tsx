@@ -32,7 +32,11 @@ export default function StorefrontLayout() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            onAnimationComplete={() => {
+              window.scrollTo(0, 0);
+              if (document.documentElement) document.documentElement.scrollTop = 0;
+            }}
           >
             <Outlet />
           </motion.div>

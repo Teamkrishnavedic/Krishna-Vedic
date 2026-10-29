@@ -20,6 +20,11 @@ export default function MobileBottomNav() {
         {/* Home */}
         <NavLink
           to="/"
+          onClick={() => {
+            if (location.pathname === '/') {
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }
+          }}
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
             isCurrent('/')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
@@ -33,6 +38,11 @@ export default function MobileBottomNav() {
         {/* Products / Categories Catalog (Amazon style) */}
         <NavLink
           to="/products"
+          onClick={() => {
+            if (location.pathname.startsWith('/products') || location.pathname.startsWith('/categories') || location.pathname.startsWith('/shop')) {
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }
+          }}
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
             isCurrent('/products') || isCurrent('/categories') || isCurrent('/shop')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
@@ -46,6 +56,11 @@ export default function MobileBottomNav() {
         {/* Search */}
         <NavLink
           to="/search"
+          onClick={() => {
+            if (location.pathname.startsWith('/search')) {
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }
+          }}
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
             isCurrent('/search')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
@@ -74,6 +89,11 @@ export default function MobileBottomNav() {
         {/* Contact & Support */}
         <NavLink
           to="/contact"
+          onClick={() => {
+            if (location.pathname.startsWith('/contact')) {
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }
+          }}
           className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-full transition-all ${
             isCurrent('/contact')
               ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-sm'
