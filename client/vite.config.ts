@@ -15,13 +15,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    allowedHosts: [
-      'queries-evaluate-mrs-limousines.trycloudflare.com',
-      '.trycloudflare.com',
-      '.lhr.life',
-      'localhost',
-      '127.0.0.1',
-    ],
+    allowedHosts: true,
     port: parseInt(process.env.PORT || '5173', 10),
     proxy: {
       '/api': {
