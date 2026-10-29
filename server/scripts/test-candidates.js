@@ -23,3 +23,4 @@ async function check(url) {
 (async () => {
   for (const c of candidates) await check(c);
 })();
+

@@ -18,3 +18,4 @@ async function checkReferencedVariants() {
   await prisma.$disconnect();
 }
 checkReferencedVariants();
+

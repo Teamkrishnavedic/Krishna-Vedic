@@ -10,3 +10,4 @@ async function checkSettings() {
   await prisma.$disconnect();
 }
 checkSettings();
+

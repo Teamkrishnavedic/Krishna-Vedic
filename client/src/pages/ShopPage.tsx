@@ -9,12 +9,40 @@ import { useToast } from '@/context/ToastContext';
 // Dynamic icon resolver for database categories
 const getCategoryIcon = (name: string, slug: string) => {
   const s = (name + ' ' + slug).toLowerCase();
-  if (s.includes('oil')) return 'water_drop';
+  if (s.includes('oil') && !s.includes('cake') && !s.includes('khal')) return 'water_drop';
+  if (s.includes('flour') || s.includes('atta')) return 'grain';
   if (s.includes('spice') || s.includes('ground') || s.includes('powder')) return 'grain';
   if (s.includes('masala') || s.includes('blend')) return 'restaurant_menu';
-  if (s.includes('whole') || s.includes('seed')) return 'spa';
+  if (s.includes('grain') || s.includes('cereal') || s.includes('seed')) return 'spa';
   if (s.includes('ghee') || s.includes('honey') || s.includes('dairy')) return 'hive';
+  if (s.includes('cake') || s.includes('khal')) return 'inventory_2';
   return 'category';
+};
+
+const CATEGORY_ALIASES: Record<string, string> = {
+  oil: 'cold-pressed-oils',
+  oils: 'cold-pressed-oils',
+  'edible-oils': 'cold-pressed-oils',
+  'wood-pressed-oils': 'cold-pressed-oils',
+  masala: 'spices-masalas',
+  masalas: 'spices-masalas',
+  'masala-blends': 'spices-masalas',
+  spices: 'spices-masalas',
+  'ghee-honey': 'ghee-honey-other-products',
+  ghee: 'ghee-honey-other-products',
+  honey: 'ghee-honey-other-products',
+  flour: 'flour-atta',
+  atta: 'flour-atta',
+  grains: 'whole-grains-cereals',
+  cereals: 'whole-grains-cereals',
+  'oil-cakes': 'oil-cakes-khal',
+  khal: 'oil-cakes-khal',
+};
+
+const resolveCategory = (cat: string | null) => {
+  if (!cat || cat === 'all') return 'all';
+  const lower = cat.toLowerCase().trim();
+  return CATEGORY_ALIASES[lower] || lower;
 };
 
 export default function ShopPage() {
@@ -23,7 +51,7 @@ export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeCategory, setActiveCategory] = useState<string>(
-    searchParams.get('category') || 'all'
+    resolveCategory(searchParams.get('category'))
   );
   const [searchQuery, setSearchQuery] = useState<string>(
     searchParams.get('q') || ''
@@ -51,20 +79,25 @@ export default function ShopPage() {
   const allProducts: any[] = productsData?.products || [];
   const dbCategories: any[] = categoriesData || [];
 
-  // Reset activeCategory if URL category slug does not exist in dbCategories
+  // Synchronize category from URL with alias support
   useEffect(() => {
-    const urlCat = searchParams.get('category');
-    if (urlCat && urlCat !== 'all' && dbCategories.length > 0) {
+    const rawCat = searchParams.get('category');
+    if (!rawCat || rawCat === 'all') {
+      setActiveCategory('all');
+      return;
+    }
+    const canonical = resolveCategory(rawCat);
+    if (dbCategories.length > 0) {
       const exists = dbCategories.some(
-        (c) => c.slug === urlCat || c.id === urlCat
+        (c) => c.slug === canonical || c.id === canonical || c.slug === rawCat
       );
-      if (!exists) {
-        setActiveCategory('all');
-        searchParams.delete('category');
-        setSearchParams(searchParams, { replace: true });
+      if (exists) {
+        setActiveCategory(canonical);
       } else {
-        setActiveCategory(urlCat);
+        setActiveCategory('all');
       }
+    } else {
+      setActiveCategory(canonical);
     }
   }, [searchParams, dbCategories]);
 
@@ -120,9 +153,12 @@ export default function ShopPage() {
 
     // Category filter
     if (activeCategory !== 'all') {
+      const canonical = resolveCategory(activeCategory);
       result = result.filter(
         (p) =>
+          p.category?.slug === canonical ||
           p.category?.slug === activeCategory ||
+          p.categoryId === canonical ||
           p.categoryId === activeCategory ||
           p.category?.id === activeCategory
       );
@@ -132,13 +168,15 @@ export default function ShopPage() {
   }, [allProducts, searchQuery, activeCategory]);
 
   const selectCategory = (slug: string) => {
-    setActiveCategory(slug);
-    if (slug === 'all') {
-      searchParams.delete('category');
+    const canonical = resolveCategory(slug);
+    setActiveCategory(canonical);
+    const newParams = new URLSearchParams(searchParams);
+    if (canonical === 'all') {
+      newParams.delete('category');
     } else {
-      searchParams.set('category', slug);
+      newParams.set('category', canonical);
     }
-    setSearchParams(searchParams);
+    setSearchParams(newParams);
   };
 
   return (

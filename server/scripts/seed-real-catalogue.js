@@ -789,3 +789,4 @@ run().catch((e) => {
   console.error('Fatal error running catalogue population:', e);
   process.exit(1);
 });
+

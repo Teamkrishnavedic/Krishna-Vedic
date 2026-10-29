@@ -33,11 +33,35 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   }
 });
 
+const CATEGORY_ALIASES: Record<string, string> = {
+  'oil': 'cold-pressed-oils',
+  'oils': 'cold-pressed-oils',
+  'edible-oils': 'cold-pressed-oils',
+  'masala': 'spices-masalas',
+  'masalas': 'spices-masalas',
+  'masala-blends': 'spices-masalas',
+  'spices': 'spices-masalas',
+  'ghee-honey': 'ghee-honey-other-products',
+  'flour': 'flour-atta',
+  'atta': 'flour-atta',
+  'grains': 'whole-grains-cereals',
+  'oil-cakes': 'oil-cakes-khal',
+};
+
 // GET /api/categories/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const category = await prisma.category.findUnique({
-      where: { slug: req.params.slug },
+    const raw = req.params.slug.toLowerCase().trim();
+    const targetSlug = CATEGORY_ALIASES[raw] || raw;
+
+    const category = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { slug: targetSlug },
+          { slug: raw },
+          { id: req.params.slug },
+        ],
+      },
       select: categorySelect,
     });
     if (!category) throw new AppError(404, 'Category not found');

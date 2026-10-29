@@ -59,19 +59,42 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const where: any = { status: 'PUBLISHED' };
 
+    const CATEGORY_ALIASES: Record<string, string> = {
+      'oil': 'cold-pressed-oils',
+      'oils': 'cold-pressed-oils',
+      'edible-oils': 'cold-pressed-oils',
+      'wood-pressed-oils': 'cold-pressed-oils',
+      'masala': 'spices-masalas',
+      'masalas': 'spices-masalas',
+      'masala-blends': 'spices-masalas',
+      'spices': 'spices-masalas',
+      'spice-powders': 'spices-masalas',
+      'whole-spices': 'spices-masalas',
+      'ghee-honey': 'ghee-honey-other-products',
+      'ghee': 'ghee-honey-other-products',
+      'honey': 'ghee-honey-other-products',
+      'flour': 'flour-atta',
+      'atta': 'flour-atta',
+      'grains': 'whole-grains-cereals',
+      'cereals': 'whole-grains-cereals',
+      'oil-cakes': 'oil-cakes-khal',
+      'khal': 'oil-cakes-khal',
+    };
+
     if (category && category !== 'all') {
+      const rawCat = (category as string).toLowerCase().trim();
+      const targetSlug = CATEGORY_ALIASES[rawCat] || rawCat;
       const cat = await prisma.category.findFirst({
         where: {
           OR: [
-            { slug: category as string },
+            { slug: targetSlug },
+            { slug: rawCat },
             { id: category as string },
           ],
         },
       });
       if (cat) {
         where.categoryId = cat.id;
-      } else {
-        where.categoryId = category as string;
       }
     }
 
