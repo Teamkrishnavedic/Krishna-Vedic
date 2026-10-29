@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import { useCart } from '@/context/CartContext';
@@ -57,6 +58,8 @@ export default function ShopPage() {
     searchParams.get('q') || ''
   );
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 6; // 6 products per page = 3 rows on mobile (2 cols), 2 rows on desktop (3 cols)
 
   // 1. Fetch all published products from API
   const { data: productsData, isLoading: isProductsLoading } = useQuery({
@@ -167,6 +170,29 @@ export default function ShopPage() {
     return result;
   }, [allProducts, searchQuery, activeCategory]);
 
+  // Reset to page 1 whenever category or search filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, startIndex, endIndex]);
+
+  const changePage = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    const element = document.getElementById('products-catalogue-grid');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 110, behavior: 'smooth' });
+    }
+  };
+
   const selectCategory = (slug: string) => {
     const canonical = resolveCategory(slug);
     setActiveCategory(canonical);
@@ -258,7 +284,19 @@ export default function ShopPage() {
       </nav>
 
       {/* ─── 2. Direct Products Grid (Clean Pure Products Only) ──────────── */}
-      <main className="max-w-7xl mx-auto w-full px-4 md:px-8 py-6">
+      <main id="products-catalogue-grid" className="max-w-7xl mx-auto w-full px-4 md:px-8 py-6">
+        {/* Subtle Status Counter */}
+        {!isProductsLoading && filteredProducts.length > 0 && (
+          <div className="flex items-center justify-between pb-3.5 text-xs text-[#7d7567] font-medium border-b border-[#e5e2da]/70 mb-4 sm:mb-6">
+            <span>
+              Showing <strong className="text-[#2d2a26] font-semibold">{startIndex + 1}–{Math.min(endIndex, filteredProducts.length)}</strong> of <strong className="text-[#2d2a26] font-semibold">{filteredProducts.length}</strong> items
+            </span>
+            <span className="bg-[#f4f4ec] text-[#6e3418] border border-[#e5e2da] px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         {isProductsLoading || isCategoriesLoading ? (
           <div className="py-24 text-center text-[#7d7567] font-serif">
             <span className="spinner mb-2 inline-block" />
@@ -283,15 +321,79 @@ export default function ShopPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={(variantId, qty) => handleAddToCart(variantId, qty)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 pt-6 border-t border-[#e5e2da] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-[#7d7567] font-medium order-2 sm:order-1 text-center sm:text-left">
+                  Showing {startIndex + 1}–{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} authentic products
+                </p>
+
+                <div className="flex items-center gap-1.5 sm:gap-2 order-1 sm:order-2">
+                  {/* Prev Button */}
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => changePage(currentPage - 1)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all border ${
+                      currentPage === 1
+                        ? 'opacity-40 cursor-not-allowed bg-[#f4f4ec] text-[#7d7567] border-[#e5e2da]'
+                        : 'bg-[#fafbf5] hover:bg-[#6e3418] text-[#2d2a26] hover:text-[#fafbf5] border-[#e5e2da] cursor-pointer shadow-2xs active:scale-95'
+                    }`}
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <span>Prev</span>
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                      const isActive = p === currentPage;
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => changePage(p)}
+                          className={`w-8 h-8 rounded-full text-xs font-semibold transition-all flex items-center justify-center cursor-pointer ${
+                            isActive
+                              ? 'bg-[#6e3418] text-[#fafbf5] font-bold shadow-xs'
+                              : 'bg-[#fafbf5] text-[#2d2a26] border border-[#e5e2da] hover:bg-[#f4f4ec] hover:border-[#6e3418]/30'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => changePage(currentPage + 1)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all border ${
+                      currentPage === totalPages
+                        ? 'opacity-40 cursor-not-allowed bg-[#f4f4ec] text-[#7d7567] border-[#e5e2da]'
+                        : 'bg-[#fafbf5] hover:bg-[#6e3418] text-[#2d2a26] hover:text-[#fafbf5] border-[#e5e2da] cursor-pointer shadow-2xs active:scale-95'
+                    }`}
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
