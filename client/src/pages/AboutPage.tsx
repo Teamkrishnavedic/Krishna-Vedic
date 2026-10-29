@@ -43,10 +43,10 @@ export default function AboutPage() {
           </div>
 
           <div className="lg:col-span-5">
-            <div className="border border-outline-variant/40 bg-surface-container-high overflow-hidden">
+            <div className="border border-outline-variant/40 bg-surface-container-high overflow-hidden rounded-2xl shadow-lg">
               <img
-                src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=1000&q=80"
-                alt="Traditional Wood Pressing"
+                src="/homepage-photo.jpeg"
+                alt="Actual Krishna Vedic Traditional Bull-Driven Bel Kohlu Press"
                 className="w-full h-[400px] object-cover"
               />
             </div>

@@ -14,6 +14,8 @@ import {
   Droplets,
   Star,
   CheckCircle2,
+  Play,
+  Volume2,
 } from 'lucide-react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
@@ -162,21 +164,21 @@ export default function HomePage() {
     <div className="flex flex-col w-full bg-[#fafbf5] text-[#2d2a26] overflow-x-hidden">
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 1 — CINEMATIC HERO
+          SECTION 1 — CINEMATIC HERO (With Real Farm Mill Photo)
       ═══════════════════════════════════════════════════════════════ */}
       <section className="relative w-full min-h-[92vh] flex items-center overflow-hidden">
-        {/* Parallax Background */}
+        {/* Parallax Background: Actual Farm Mill Photo */}
         <div className="absolute inset-0 z-0">
-          <div ref={heroImgRef} className="absolute inset-0 will-change-transform scale-110">
+          <div ref={heroImgRef} className="absolute inset-0 will-change-transform scale-105">
             <img
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1800&q=90"
-              alt="Traditional Indian oil press — Bel Kohlu"
-              className="w-full h-full object-cover"
+              src="/homepage-photo.jpeg"
+              alt="Traditional Bull-Driven Bel Kohlu Press in Rajasthan - Krishna Vedic"
+              className="w-full h-full object-cover object-center brightness-90"
             />
           </div>
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* Dark gradient overlay for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
         </div>
 
         {/* Hero Content */}
@@ -192,7 +194,7 @@ export default function HomePage() {
             >
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200">
-                Krishna Vedic · Est. 2020
+                Krishna Vedic · Est. 2000
               </span>
             </motion.div>
 
@@ -204,9 +206,9 @@ export default function HomePage() {
               custom={0.2}
               className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.1] tracking-tight"
             >
-              सात पीढ़ियों की
+              सन 2000 से
               <br />
-              <span className="italic font-normal text-amber-300">विरासत</span>
+              <span className="italic font-normal text-amber-300">शुद्धता की अटूट परंपरा</span>
             </motion.h1>
 
             {/* English Sub-title */}
@@ -215,9 +217,9 @@ export default function HomePage() {
               initial="hidden"
               animate="visible"
               custom={0.35}
-              className="mt-3 font-serif text-xl sm:text-2xl text-white/70 italic"
+              className="mt-3 font-serif text-xl sm:text-2xl text-white/80 italic"
             >
-              Seven Generations of Heritage
+              25+ Years of Pure Bull-Driven Heritage
             </motion.p>
 
             {/* Description */}
@@ -226,11 +228,11 @@ export default function HomePage() {
               initial="hidden"
               animate="visible"
               custom={0.5}
-              className="mt-6 text-sm sm:text-base text-white/75 max-w-lg leading-relaxed font-light"
+              className="mt-6 text-sm sm:text-base text-white/80 max-w-lg leading-relaxed font-light"
             >
-              Our great-grandparents began this journey in the 1940s — pressing oil the
-              traditional <em>Kachi Ghani</em> way, with bulls turning the stone Bel Kohlu.
-              Today, we carry that same sacred process to your kitchen.
+              Our family began this journey in the year 2000 in Rajasthan — pressing oil the
+              authentic <em>Kachi Ghani</em> way, with healthy bulls gently turning the stone
+              Bel Kohlu at slow 14 RPM. No heat. No chemicals. Pure traditional vitality.
             </motion.p>
 
             {/* CTAs */}
@@ -239,7 +241,7 @@ export default function HomePage() {
               initial="hidden"
               animate="visible"
               custom={0.65}
-              className="mt-8 flex flex-wrap gap-4"
+              className="mt-8 flex flex-wrap items-center gap-4"
             >
               <Link
                 to="/shop"
@@ -248,9 +250,20 @@ export default function HomePage() {
                 <span>Shop the Pantry</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
+              <a
+                href="#live-mill-video"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('live-mill-video')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="bg-white/15 backdrop-blur-md border border-white/40 text-white hover:bg-white/25 px-6 py-3.5 rounded-full text-sm font-semibold tracking-wide uppercase transition-all active:scale-95 flex items-center gap-2 cursor-pointer shadow-md"
+              >
+                <Play className="w-4 h-4 text-amber-300 fill-amber-300" />
+                <span>Watch Mill Video</span>
+              </a>
               <Link
                 to="/about"
-                className="bg-white/10 backdrop-blur-sm border border-white/30 text-white px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide uppercase hover:bg-white/20 transition-all active:scale-95"
+                className="text-white/80 hover:text-white px-4 py-3.5 text-xs font-semibold tracking-wider uppercase underline underline-offset-4 transition-colors"
               >
                 Our Story
               </Link>
@@ -322,30 +335,30 @@ export default function HomePage() {
 
             {[
               {
-                decade: '1940s',
-                title: 'दादा-दादी का सपना',
-                titleEn: 'The Founding Dream',
-                body: 'Our great-grandparents set up the first Bel Kohlu — a massive stone oil press turned by bulls — in a small courtyard in Jaipur. Every drop of oil carried their sweat, faith, and the promise of purity.',
-                img: 'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80',
+                decade: '2000',
+                title: 'स्थापना एवं संकल्प',
+                titleEn: 'The Founding in 2000',
+                body: 'Our family set up our first Bel Kohlu in Rajasthan in the year 2000 — a traditional stone mortar and wooden press turned by bulls. Rejecting high-heat factory expellers, every drop was pressed with patience and pure devotion.',
+                img: '/homepage-photo.jpeg',
               },
               {
-                decade: '1970s',
-                title: 'परंपरा की निरंतरता',
-                titleEn: 'The Tradition Continues',
-                body: 'The next generation grew up watching the bulls circle the kohlu at dawn. They learned that slow rotation — just 14 RPM — keeps the oil cool, fragrant, and alive with nutrients that factory machines destroy.',
+                decade: '2012',
+                title: 'प्राकृतिक विस्तार',
+                titleEn: 'Stone-Ground Spices',
+                body: 'Seeing how families cherished real unheated oils, we extended the same Vedic standards to whole spices — using slow granite chakkis that grind seeds cool without burning vital essential aromatics.',
                 img: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
               },
               {
                 decade: 'Today',
-                title: 'आपके घर तक',
-                titleEn: 'From Our Mill to Your Kitchen',
-                body: 'We honour every ancestor who tended this mill by bringing the same authentic Kachi Ghani oil, stone-ground spices, and pure A2 ghee — to homes all across India, unchanged in method, uncompromised in quality.',
+                title: 'आपकी रसोई तक शुद्धता',
+                titleEn: 'Delivered to 10,000+ Kitchens',
+                body: '25 years later, the same white bulls circle the kohlu at sunrise. We bring authentic wood-pressed oils, hand-pounded spices, and pure A2 bilona ghee to conscious households all across India.',
                 img: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
               },
             ].map((item, i) => (
               <AnimatedSection key={item.decade} delay={i * 0.15} className="flex flex-col items-center text-center">
                 {/* Circle photo */}
-                <div className="relative z-10 w-24 h-24 rounded-full overflow-hidden border-4 border-[#fafbf5] shadow-xl mb-6 bg-[#f4f4ec]">
+                <div className="relative z-10 w-28 h-28 rounded-full overflow-hidden border-4 border-[#fafbf5] shadow-xl mb-6 bg-[#f4f4ec]">
                   <img src={item.img} alt={item.titleEn} className="w-full h-full object-cover" />
                 </div>
 
@@ -364,26 +377,41 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          SECTION 4 — THE KOHLU PROCESS (full-width editorial)
+          SECTION 4 — THE KOHLU PROCESS (With Real Footage Video Player)
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="w-full py-0 bg-[#2d2a26] overflow-hidden">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
-          {/* Left: Image */}
-          <AnimatedSection className="relative overflow-hidden min-h-[320px] lg:min-h-full">
-            <img
-              src="https://images.unsplash.com/photo-1545558014-8692077e9b5c?auto=format&fit=crop&w=1200&q=85"
-              alt="Traditional bull-driven kohlu oil press"
-              className="w-full h-full object-cover opacity-80"
+      <section id="live-mill-video" className="w-full py-0 bg-[#2d2a26] overflow-hidden scroll-mt-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 min-h-[540px]">
+          {/* Left: Actual Mill Video Player */}
+          <AnimatedSection className="relative overflow-hidden min-h-[380px] lg:min-h-full bg-black flex items-center justify-center group">
+            <video
+              src="/homepage-video.mp4"
+              poster="/homepage-photo.jpeg"
+              controls
+              playsInline
+              autoPlay
+              muted
+              loop
+              className="w-full h-full object-cover max-h-[640px]"
             />
-            {/* Orange tint overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#6e3418]/40 to-transparent" />
+            {/* Live Indicator overlay badge */}
+            <div className="absolute top-4 left-4 z-10 pointer-events-none flex items-center gap-2 bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white">
+                Actual Footage · Bel Kohlu in Action
+              </span>
+            </div>
+            {/* Audio hint */}
+            <div className="absolute bottom-4 right-4 z-10 pointer-events-none hidden sm:flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-white/90 text-[10px] border border-white/10">
+              <Volume2 className="w-3.5 h-3.5 text-amber-300" />
+              <span>Unmute for real mill sound</span>
+            </div>
           </AnimatedSection>
 
-          {/* Right: Story */}
+          {/* Right: Story & Process */}
           <div className="flex flex-col justify-center p-8 sm:p-12 md:p-16 space-y-7">
             <AnimatedSection delay={0.1}>
               <span className="text-xs uppercase tracking-[0.2em] text-amber-400 font-bold">
-                The Kachi Ghani Method
+                The Authentic Kachi Ghani Method
               </span>
             </AnimatedSection>
 
@@ -391,25 +419,25 @@ export default function HomePage() {
               <h2 className="font-serif text-3xl sm:text-4xl text-white leading-tight">
                 Bel Kohlu — the ancient
                 <br />
-                <span className="italic text-amber-300">art of honest oil.</span>
+                <span className="italic text-amber-300">art of honest cold-pressed oil.</span>
               </h2>
             </AnimatedSection>
 
             <AnimatedSection delay={0.3}>
               <p className="text-sm text-white/70 leading-relaxed font-light">
-                A bull walks slow circles around a massive wooden press — the Bel Kohlu. The
-                stone mortar turns at just <strong className="text-white">14 RPM</strong>,
-                gently coaxing oil from the seed without a single degree of artificial heat.
+                Watch our healthy white bull walk slow, unhurried circles around the heavy Bel Kohlu. The
+                hardwood pestle and natural stone mortar turn at just <strong className="text-white">14 RPM</strong>,
+                slowly coaxing fresh golden oil from seeds without a single degree of artificial friction.
                 Temperature never exceeds <strong className="text-white">38°C</strong>.
               </p>
             </AnimatedSection>
 
             <AnimatedSection delay={0.4}>
               <p className="text-sm text-white/70 leading-relaxed font-light">
-                Compare that to industrial expellers spinning at{' '}
-                <strong className="text-white">1,200 RPM</strong> and generating over
-                100°C — destroying vitamins, killing aroma, and stripping the very soul
-                of the seed. Our ancestors refused that shortcut. So do we.
+                Compare that to industrial expellers spinning violently at{' '}
+                <strong className="text-white">1,200 RPM</strong> that heat oil above
+                100°C — burning vitamins, bleaching natural antioxidants, and stripping the life
+                out of the harvest. Since 2000, our family has refused to compromise.
               </p>
             </AnimatedSection>
 
@@ -419,7 +447,7 @@ export default function HomePage() {
                 {[
                   { label: 'Slow 14 RPM Rotation', icon: RotateCw },
                   { label: 'Natural Stone Mortar', icon: Layers },
-                  { label: 'Pure Cold Filtration', icon: Droplets },
+                  { label: 'Pure Cold Sedimentation', icon: Droplets },
                 ].map((step, i) => {
                   const StepIcon = step.icon;
                   return (
@@ -443,10 +471,10 @@ export default function HomePage() {
       <section className="w-full py-14 px-5 bg-[#6e3418] overflow-hidden">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { to: 3, suffix: '+', label: 'Generations of Craft' },
-            { to: 80, suffix: '+', label: 'Years of Legacy' },
-            { to: 0, suffix: '', label: 'Chemicals. Ever.' },
-            { to: 100, suffix: '%', label: 'Pure & Authentic' },
+            { to: 25, suffix: '+', label: 'Years of Heritage (Est. 2000)' },
+            { to: 14, suffix: ' RPM', label: 'Slow Bel Kohlu Press' },
+            { to: 0, suffix: '', label: 'Chemicals or Heat' },
+            { to: 100, suffix: '%', label: 'Pure & Cold-Pressed' },
           ].map((stat, i) => (
             <AnimatedSection key={stat.label} delay={i * 0.1} className="flex flex-col items-center gap-1">
               <span className="font-serif text-4xl sm:text-5xl font-bold text-amber-300">
@@ -591,21 +619,21 @@ export default function HomePage() {
                 </span>
 
                 <p className="font-serif text-lg sm:text-xl text-white leading-relaxed">
-                  "When our great-grandparents pressed the first batch of oil, there were no
-                  labs, no certifications, no e-commerce. There was only one standard —
+                  "When we pressed our first batch of oil in 2000, there were no
+                  labs, no certificates, no digital orders. There was only one family standard —
                   <span className="italic text-amber-300"> would you give this to your own children?</span>
                 </p>
 
                 <p className="text-sm text-white/70 leading-relaxed font-light">
-                  That question has guided every batch we have ever pressed. We did not
-                  switch to machines when the world did. We did not add preservatives when
-                  shelf-life demanded it. We simply kept asking the same question our
-                  great-grandparents asked — and the answer was always the same.
+                  That single question has guided every single morning at our mill for over 25 years. We did not
+                  switch to high-speed heated machines when modern factories did. We did not add chemical
+                  preservatives when commercial shelf-life demanded it. We simply stayed true to our traditional
+                  bull-driven Bel Kohlu.
                 </p>
 
                 <p className="text-sm text-white/70 leading-relaxed font-light">
                   Today you hold the result of that answer in your hands. Pure. Honest.
-                  Unchanged. This is not just oil — it is our family's word, pressed fresh
+                  Unchanged since 2000. This is not just oil — it is our family's word, pressed fresh
                   for your family.
                 </p>
 
@@ -617,18 +645,18 @@ export default function HomePage() {
                     <p className="font-serif text-white text-sm font-semibold">
                       The Krishna Vedic Family
                     </p>
-                    <p className="text-[11px] text-white/50">Krishna Vedic · Est. 2020</p>
+                    <p className="text-[11px] text-white/50">Krishna Vedic · Est. 2000</p>
                   </div>
                 </div>
               </div>
 
-              {/* Side image on large screens */}
+              {/* Side image on large screens: Actual Farm Bel Kohlu Photo */}
               <div className="lg:col-span-3 hidden lg:block">
-                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-white/10">
+                <div className="aspect-[3/4] rounded-2xl overflow-hidden border border-white/20 shadow-xl group">
                   <img
-                    src="https://images.unsplash.com/photo-1631632259158-58c7e73fef64?auto=format&fit=crop&w=600&q=80"
-                    alt="Authentic ghee in traditional copper vessel"
-                    className="w-full h-full object-cover opacity-80"
+                    src="/homepage-photo.jpeg"
+                    alt="Authentic Krishna Vedic Bull-Driven Bel Kohlu Press"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
               </div>
