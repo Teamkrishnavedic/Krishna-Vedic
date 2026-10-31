@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -164,11 +164,12 @@ app.use('/api/auth', rateLimiters.auth);
 app.use('/api/checkout', rateLimiters.checkout);
 app.use('/api/upload', rateLimiters.upload);
 // Global rate limiter applied across remaining API routes (excluding webhooks)
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction): void => {
   if (req.path.startsWith('/api/payments/webhook')) {
-    return next();
+    next();
+    return;
   }
-  return rateLimiters.general(req, res, next);
+  rateLimiters.general(req, res, next);
 });
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
