@@ -1,6 +1,9 @@
 import { execSync } from 'child_process';
 
 export function ensureDatabaseHostResolved(): void {
+  // In production (e.g. Vercel), DNS resolution is managed by the cloud host infrastructure.
+  if (process.env.NODE_ENV === 'production') return;
+
   const originalUrl = process.env.DATABASE_URL;
   if (!originalUrl) return;
 
@@ -23,4 +26,3 @@ export function ensureDatabaseHostResolved(): void {
     console.warn('[DNS] DNS fallback resolution skipped:', e.message);
   }
 }
-

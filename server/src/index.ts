@@ -1,4 +1,3 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import 'dotenv/config';
 import { ensureDatabaseHostResolved } from './lib/dns-resolve';
 ensureDatabaseHostResolved();

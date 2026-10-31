@@ -72,34 +72,47 @@ app.use(
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 const defaultDevOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000', 'http://127.0.0.1:5173'];
-const configuredOrigins = (process.env.ALLOWED_ORIGINS || '')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
+const configuredOrigins = [
+  ...(process.env.ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean),
+  process.env.CLIENT_URL ? process.env.CLIENT_URL.trim() : null,
+].filter((o): o is string => Boolean(o));
 
-const allowedOrigins = configuredOrigins.length > 0 ? configuredOrigins : defaultDevOrigins;
+// In production, never fall back to default dev origins (localhost)
+const allowedOrigins = isProduction ? configuredOrigins : (configuredOrigins.length > 0 ? configuredOrigins : defaultDevOrigins);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        (!isProduction && (
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server, same-origin)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Check explicitly configured origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow Vercel preview and production deployment domains
+      if (origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+
+      // In development only, allow local hosts and dev tunnels
+      if (!isProduction) {
+        if (
           origin.startsWith('http://localhost:') ||
           origin.startsWith('http://127.0.0.1:') ||
           origin.endsWith('.loca.lt') ||
           origin.endsWith('.ngrok-free.app') ||
           origin.endsWith('.trycloudflare.com') ||
           /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(origin)
-        ))
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS policy'));
+        ) {
+          return callback(null, true);
+        }
       }
+
+      return callback(new Error('Not allowed by CORS policy'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -129,7 +142,7 @@ app.use(
     name: 'kv.sid',
     cookie: {
       httpOnly: true, // Immune to JavaScript / XSS token theft
-      secure: isProduction ? true : 'auto', // Secure on HTTPS (tunnels, Vercel, SSL)
+      secure: isProduction, // Enforce Secure cookies (HTTPS) in production
       sameSite: 'lax',
       maxAge: parseInt(process.env.SESSION_MAX_AGE || '604800000', 10), // 7 days
     },
@@ -186,7 +199,11 @@ app.get('/', (_req, res) => {
   });
 });
 
-// Health check
+// Health check and API root
+app.get('/api', (_req, res) => {
+  res.json({ service: 'Krishnavedic API', status: 'ok', healthCheck: '/api/health' });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

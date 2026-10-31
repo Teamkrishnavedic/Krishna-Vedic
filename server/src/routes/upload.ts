@@ -38,10 +38,16 @@ function getCloudinaryConfig() {
   return { configured: false, cloudName: null };
 }
 
-// Ensure local upload dir exists
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Ensure local upload dir exists in development only (serverless filesystems in production are read-only)
 const uploadsDir = path.join(process.cwd(), 'uploads', 'products');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+if (!isProduction && !fs.existsSync(uploadsDir)) {
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  } catch (err: any) {
+    console.warn('Unable to create local uploads directory:', err.message);
+  }
 }
 
 // Multer memory storage allows us to attempt Cloudinary first, falling back to disk if needed
@@ -102,6 +108,13 @@ router.post(
 
       const cfg = getCloudinaryConfig();
 
+      if (isProduction && !cfg.configured) {
+        throw new AppError(
+          500,
+          'Cloudinary is not configured. Cloud-based image storage is required for production serverless deployments.',
+        );
+      }
+
       // If Cloudinary is configured, attempt upload
       if (cfg.configured && req.file.buffer) {
         try {
@@ -127,8 +140,14 @@ router.post(
             message: 'Image uploaded to Cloudinary successfully',
           });
         } catch (cloudErr: any) {
+          if (isProduction) {
+            throw new AppError(
+              500,
+              `Cloudinary upload failed: ${cloudErr.message || 'Image processing error'}`,
+            );
+          }
           console.warn('Cloudinary upload error, falling back to local disk storage:', cloudErr.message || cloudErr);
-          // Fall through to save locally
+          // Fall through to save locally in development only
         }
       }
 

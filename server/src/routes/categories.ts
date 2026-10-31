@@ -51,7 +51,8 @@ const CATEGORY_ALIASES: Record<string, string> = {
 // GET /api/categories/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const raw = req.params.slug.toLowerCase().trim();
+    const slugParam = typeof req.params.slug === 'string' ? req.params.slug : String(req.params.slug || '');
+    const raw = slugParam.toLowerCase().trim();
     const targetSlug = CATEGORY_ALIASES[raw] || raw;
 
     const category = await prisma.category.findFirst({
