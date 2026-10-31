@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { getRouteParam } from '../lib/route-params';
 
 const router = Router();
 
@@ -51,7 +52,7 @@ const CATEGORY_ALIASES: Record<string, string> = {
 // GET /api/categories/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const slugParam = typeof req.params.slug === 'string' ? req.params.slug : String(req.params.slug || '');
+    const slugParam = getRouteParam(req.params.slug, 'slug');
     const raw = slugParam.toLowerCase().trim();
     const targetSlug = CATEGORY_ALIASES[raw] || raw;
 
@@ -60,7 +61,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
         OR: [
           { slug: targetSlug },
           { slug: raw },
-          { id: req.params.slug },
+          { id: slugParam },
         ],
       },
       select: categorySelect,

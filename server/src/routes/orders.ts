@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { requireAuth } from '../middleware/auth';
+import { getRouteParam } from '../lib/route-params';
 import checkoutRoutes from './checkout';
 
 const router = Router();
@@ -87,7 +88,7 @@ router.get('/', requireAuth, async (req: Request, res: Response, next: NextFunct
 // GET /api/orders/:orderNumber (supports either orderNumber or id)
 router.get('/:orderNumber', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const identifier = req.params.orderNumber;
+    const identifier = getRouteParam(req.params.orderNumber, 'orderNumber');
     const order = await prisma.order.findFirst({
       where: {
         OR: [

@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { getRouteParam } from '../lib/route-params';
 
 const router = Router();
 
@@ -217,7 +218,7 @@ router.get('/bestsellers', async (req: Request, res: Response, next: NextFunctio
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const product = await prisma.product.findUnique({
-      where: { slug: req.params.slug },
+      where: { slug: getRouteParam(req.params.slug, 'slug') },
       select: productSelect,
     });
 

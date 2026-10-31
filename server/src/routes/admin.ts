@@ -4,6 +4,7 @@ import path from 'path';
 import { v2 as cloudinary } from 'cloudinary';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { getRouteParam } from '../lib/route-params';
 import { requireAdmin, requireStaff, requireSuperAdmin } from '../middleware/auth';
 import {
   productSchema,
@@ -183,9 +184,10 @@ router.post('/categories', requireAdmin, async (req: Request, res: Response, nex
 
 router.put('/categories/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'categoryId');
     const data = categorySchema.parse(req.body);
-    const old = await prisma.category.findUnique({ where: { id: req.params.id } });
-    const category = await prisma.category.update({ where: { id: req.params.id }, data });
+    const old = await prisma.category.findUnique({ where: { id } });
+    const category = await prisma.category.update({ where: { id }, data });
     await auditLog(req, 'UPDATE_CATEGORY', 'Category', category.id, old, category);
     res.json({ category });
   } catch (err) {
@@ -195,7 +197,7 @@ router.put('/categories/:id', requireAdmin, async (req: Request, res: Response, 
 
 router.delete('/categories/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const categoryId = req.params.id;
+    const categoryId = getRouteParam(req.params.id, 'categoryId');
     const { reassignTo } = req.query;
 
     const count = await prisma.product.count({ where: { categoryId } });
@@ -278,8 +280,9 @@ router.get('/products', async (req: Request, res: Response, next: NextFunction) 
 
 router.get('/products/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'productId');
     const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: {
         category: true,
         variants: { include: { priceHistory: { take: 5, orderBy: { createdAt: 'desc' } } }, orderBy: { sortOrder: 'asc' } },
@@ -311,10 +314,11 @@ router.post('/products', requireAdmin, async (req: Request, res: Response, next:
 
 router.put('/products/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'productId');
     const data = productSchema.parse(req.body);
-    const old = await prisma.product.findUnique({ where: { id: req.params.id } });
+    const old = await prisma.product.findUnique({ where: { id } });
     const product = await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { ...data, tags: JSON.stringify(data.tags) },
     });
     await auditLog(req, 'UPDATE_PRODUCT', 'Product', product.id, old, product);
@@ -330,8 +334,9 @@ router.patch('/products/:id/status', requireAdmin, async (req: Request, res: Res
     if (!['DRAFT', 'PUBLISHED', 'ARCHIVED'].includes(status)) {
       throw new AppError(422, 'Invalid status');
     }
+    const id = getRouteParam(req.params.id, 'productId');
     const product = await prisma.product.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status },
     });
     res.json({ product });
@@ -347,7 +352,7 @@ router.post('/products/:id/images', requireAdmin, async (req: Request, res: Resp
     const { url, altText, sortOrder } = req.body;
     if (!url) throw new AppError(400, 'Image URL is required');
     const image = await prisma.productImage.create({
-      data: { productId: req.params.id, url, altText, sortOrder: sortOrder || 0 },
+      data: { productId: getRouteParam(req.params.id, 'productId'), url, altText, sortOrder: sortOrder || 0 },
     });
     res.status(201).json({ image });
   } catch (err) {
@@ -357,13 +362,14 @@ router.post('/products/:id/images', requireAdmin, async (req: Request, res: Resp
 
 router.delete('/products/:productId/images/:imageId', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const img = await prisma.productImage.findUnique({ where: { id: req.params.imageId } });
+    const imageId = getRouteParam(req.params.imageId, 'imageId');
+    const img = await prisma.productImage.findUnique({ where: { id: imageId } });
     if (img?.url) {
       // Delete asset from Cloudinary or local disk
       await deleteAssetFromStorage(img.url);
     }
 
-    await prisma.productImage.delete({ where: { id: req.params.imageId } });
+    await prisma.productImage.delete({ where: { id: imageId } });
     res.json({ message: 'Image deleted from Cloudinary and database' });
   } catch (err) {
     next(err);
@@ -372,8 +378,9 @@ router.delete('/products/:productId/images/:imageId', requireAdmin, async (req: 
 
 router.delete('/products/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'productId');
     const product = await prisma.product.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: { images: true, variants: true },
     });
     if (!product) throw new AppError(404, 'Product not found');
@@ -403,8 +410,8 @@ router.delete('/products/:id', requireAdmin, async (req: Request, res: Response,
       });
     }
 
-    await prisma.product.delete({ where: { id: req.params.id } });
-    await auditLog(req, 'DELETE_PRODUCT', 'Product', String(req.params.id), product, null);
+    await prisma.product.delete({ where: { id } });
+    await auditLog(req, 'DELETE_PRODUCT', 'Product', id, product, null);
     res.json({ message: 'Product and all associated images deleted' });
   } catch (err) {
     next(err);
@@ -426,8 +433,9 @@ router.post('/variants', requireAdmin, async (req: Request, res: Response, next:
 
 router.put('/variants/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'variantId');
     const data = variantSchema.parse(req.body);
-    const old = await prisma.productVariant.findUnique({ where: { id: req.params.id } });
+    const old = await prisma.productVariant.findUnique({ where: { id } });
     if (!old) throw new AppError(404, 'Variant not found');
 
     const variant = await prisma.$transaction(async (tx) => {
@@ -444,7 +452,7 @@ router.put('/variants/:id', requireAdmin, async (req: Request, res: Response, ne
           },
         });
       }
-      return tx.productVariant.update({ where: { id: req.params.id }, data });
+      return tx.productVariant.update({ where: { id }, data });
     });
 
     await auditLog(req, 'UPDATE_VARIANT', 'ProductVariant', variant.id, old, variant);
@@ -456,7 +464,7 @@ router.put('/variants/:id', requireAdmin, async (req: Request, res: Response, ne
 
 router.delete('/variants/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const variantId = req.params.id;
+    const variantId = getRouteParam(req.params.id, 'variantId');
     const variant = await prisma.productVariant.findUnique({ where: { id: variantId } });
     if (!variant) throw new AppError(404, 'Variant not found');
 
@@ -496,8 +504,9 @@ router.delete('/variants/:id', requireAdmin, async (req: Request, res: Response,
 
 router.patch('/variants/:id/price', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'variantId');
     const data = priceUpdateSchema.parse(req.body);
-    const old = await prisma.productVariant.findUnique({ where: { id: req.params.id } });
+    const old = await prisma.productVariant.findUnique({ where: { id } });
     if (!old) throw new AppError(404, 'Variant not found');
 
     const variant = await prisma.$transaction(async (tx) => {
@@ -513,7 +522,7 @@ router.patch('/variants/:id/price', requireAdmin, async (req: Request, res: Resp
         },
       });
       return tx.productVariant.update({
-        where: { id: req.params.id },
+        where: { id },
         data: { price: data.price, compareAtPrice: data.compareAtPrice },
       });
     });
@@ -527,8 +536,9 @@ router.patch('/variants/:id/price', requireAdmin, async (req: Request, res: Resp
 
 router.get('/variants/:id/price-history', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const variantId = getRouteParam(req.params.id, 'variantId');
     const history = await prisma.priceHistory.findMany({
-      where: { variantId: req.params.id },
+      where: { variantId },
       include: { changedBy: { select: { name: true, email: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -633,8 +643,9 @@ router.get('/orders', async (req: Request, res: Response, next: NextFunction) =>
 
 router.get('/orders/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'orderId');
     const order = await prisma.order.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       include: {
         user: { select: { name: true, email: true, phone: true } },
         items: true,
@@ -652,8 +663,9 @@ router.get('/orders/:id', async (req: Request, res: Response, next: NextFunction
 
 router.patch('/orders/:id/status', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'orderId');
     const { status, note } = orderStatusUpdateSchema.parse(req.body);
-    const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+    const order = await prisma.order.findUnique({ where: { id } });
     if (!order) throw new AppError(404, 'Order not found');
 
     await prisma.$transaction([
@@ -741,10 +753,11 @@ router.get('/customers', async (req: Request, res: Response, next: NextFunction)
 
 router.patch('/customers/:id/toggle-active', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+    const id = getRouteParam(req.params.id, 'customerId');
+    const user = await prisma.user.findUnique({ where: { id } });
     if (!user) throw new AppError(404, 'Customer not found');
     const updated = await prisma.user.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { isActive: !user.isActive },
     });
     res.json({ isActive: updated.isActive });
@@ -786,9 +799,10 @@ router.post('/coupons', requireAdmin, async (req: Request, res: Response, next: 
 
 router.put('/coupons/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'couponId');
     const data = couponSchema.parse(req.body);
     const coupon = await prisma.coupon.update({
-      where: { id: req.params.id },
+      where: { id },
       data: {
         ...data,
         code: data.code.toUpperCase(),
@@ -804,7 +818,7 @@ router.put('/coupons/:id', requireAdmin, async (req: Request, res: Response, nex
 
 router.delete('/coupons/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const couponId = req.params.id;
+    const couponId = getRouteParam(req.params.id, 'couponId');
     const coupon = await prisma.coupon.findUnique({ where: { id: couponId } });
     if (!coupon) throw new AppError(404, 'Coupon not found');
 
@@ -849,8 +863,9 @@ router.post('/shipping-rules', requireAdmin, async (req: Request, res: Response,
 
 router.put('/shipping-rules/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const id = getRouteParam(req.params.id, 'ruleId');
     const data = shippingRuleSchema.parse(req.body);
-    const rule = await prisma.shippingRule.update({ where: { id: req.params.id }, data });
+    const rule = await prisma.shippingRule.update({ where: { id }, data });
     res.json({ rule });
   } catch (err) {
     next(err);
@@ -859,7 +874,8 @@ router.put('/shipping-rules/:id', requireAdmin, async (req: Request, res: Respon
 
 router.delete('/shipping-rules/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await prisma.shippingRule.delete({ where: { id: req.params.id } });
+    const id = getRouteParam(req.params.id, 'ruleId');
+    await prisma.shippingRule.delete({ where: { id } });
     res.json({ message: 'Shipping rule deleted' });
   } catch (err) {
     next(err);
@@ -977,8 +993,9 @@ router.patch('/staff/:id/role', requireSuperAdmin, async (req: Request, res: Res
   try {
     const { role } = req.body;
     if (!['STAFF', 'ADMIN'].includes(role)) throw new AppError(422, 'Invalid role');
+    const id = getRouteParam(req.params.id, 'staffId');
     const user = await prisma.user.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { role },
       select: { id: true, name: true, email: true, role: true },
     });

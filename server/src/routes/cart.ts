@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
+import { getRouteParam } from '../lib/route-params';
 import { addToCartSchema, updateCartItemSchema } from '@krishnavedic/shared';
 import { nanoid } from 'nanoid';
 
@@ -165,7 +166,8 @@ router.patch('/items/:itemId', async (req: Request, res: Response, next: NextFun
     const { quantity } = updateCartItemSchema.parse(req.body);
     const cart = await getOrCreateCart(req);
 
-    const item = cart.items.find((i: any) => i.id === req.params.itemId);
+    const itemId = getRouteParam(req.params.itemId, 'itemId');
+    const item = cart.items.find((i: any) => i.id === itemId);
     if (!item) throw new AppError(404, 'Cart item not found');
 
     if (quantity === 0) {
@@ -189,7 +191,8 @@ router.patch('/items/:itemId', async (req: Request, res: Response, next: NextFun
 router.delete('/items/:itemId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cart = await getOrCreateCart(req);
-    const item = cart.items.find((i: any) => i.id === req.params.itemId);
+    const itemId = getRouteParam(req.params.itemId, 'itemId');
+    const item = cart.items.find((i: any) => i.id === itemId);
     if (!item) throw new AppError(404, 'Cart item not found');
 
     await prisma.cartItem.delete({ where: { id: item.id } });
