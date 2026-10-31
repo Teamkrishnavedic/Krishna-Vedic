@@ -15,7 +15,9 @@ export default function AdminProducts() {
     queryFn: async () => {
       let url = `/admin/products?limit=100`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
-      if (selectedCategory) url += `&categoryId=${selectedCategory}`;
+      if (selectedCategory) {
+        url += `&categoryId=${encodeURIComponent(selectedCategory)}&category=${encodeURIComponent(selectedCategory)}`;
+      }
       const res = await api.get(url);
       return res.data;
     },
@@ -82,7 +84,15 @@ export default function AdminProducts() {
     return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
   };
 
-  const products = productsData?.products || [];
+  const rawProducts = productsData?.products || [];
+  const products = selectedCategory
+    ? rawProducts.filter(
+        (p: any) =>
+          p.categoryId === selectedCategory ||
+          p.category?.id === selectedCategory ||
+          p.category?.slug === selectedCategory
+      )
+    : rawProducts;
 
   return (
     <div className="space-y-6">
@@ -129,9 +139,21 @@ export default function AdminProducts() {
           >
             <option value="">All Categories ({categories.length})</option>
             {categories.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name} {c._count?.products !== undefined ? `(${c._count.products})` : ''}
+              </option>
             ))}
           </select>
+          {selectedCategory && (
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('')}
+              className="text-[11px] text-[#6e3418] hover:text-[#522510] underline whitespace-nowrap cursor-pointer"
+              title="Show All Categories"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -159,7 +181,9 @@ export default function AdminProducts() {
               ) : products.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-[#7d7567]">
-                    No products found matching your search.
+                    {selectedCategory
+                      ? 'No products found in this category.'
+                      : 'No products found matching your search.'}
                   </td>
                 </tr>
               ) : (

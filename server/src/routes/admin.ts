@@ -242,17 +242,28 @@ router.delete('/categories/:id', requireAdmin, async (req: Request, res: Respons
 
 router.get('/products', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page = '1', limit = '20', status, category, search } = req.query;
+    const { page = '1', limit = '20', status, category, categoryId, search } = req.query;
     const take = Math.min(parseInt(limit as string, 10), 100);
     const skip = (parseInt(page as string, 10) - 1) * take;
 
     const where: any = {};
     if (status) where.status = status;
-    if (category) where.category = { slug: category };
+
+    const targetCategory = (categoryId || category) as string | undefined;
+    if (targetCategory && targetCategory !== 'all') {
+      where.category = {
+        OR: [
+          { id: targetCategory },
+          { slug: targetCategory },
+        ],
+      };
+    }
+
     if (search) {
+      const searchStr = (search as string).trim();
       where.OR = [
-        { name: { contains: search as string } },
-        { sku: { contains: search as string } },
+        { name: { contains: searchStr, mode: 'insensitive' } },
+        { sku: { contains: searchStr, mode: 'insensitive' } },
       ];
     }
 
