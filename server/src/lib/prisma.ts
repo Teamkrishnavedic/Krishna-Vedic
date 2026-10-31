@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import { getResolvedDatabaseUrl } from './dns-resolve';
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function getPrismaClient(): PrismaClient {
-  let url = process.env.DATABASE_URL || '';
+  let url = getResolvedDatabaseUrl();
   if (url && !url.includes('connection_limit=')) {
     const sep = url.includes('?') ? '&' : '?';
     url = `${url}${sep}connection_limit=2&pool_timeout=15`;

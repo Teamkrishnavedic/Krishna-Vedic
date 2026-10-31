@@ -18,6 +18,10 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
+  if (res.headersSent) {
+    return _next(err);
+  }
+
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       error: err.message,
