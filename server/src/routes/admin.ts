@@ -251,12 +251,18 @@ router.get('/products', async (req: Request, res: Response, next: NextFunction) 
 
     const targetCategory = (categoryId || category) as string | undefined;
     if (targetCategory && targetCategory !== 'all') {
-      where.category = {
-        OR: [
-          { id: targetCategory },
-          { slug: targetCategory },
-        ],
-      };
+      const cat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { id: targetCategory },
+            { slug: targetCategory },
+          ],
+        },
+        select: { id: true },
+      });
+      if (cat) {
+        where.categoryId = cat.id;
+      }
     }
 
     if (search) {
