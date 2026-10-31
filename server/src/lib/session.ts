@@ -32,8 +32,8 @@ function createSessionStore(): session.Store {
         ssl: {
           rejectUnauthorized: false,
         },
-        max: isProduction ? 2 : 5,
-        idleTimeoutMillis: 15000,
+        max: 2,
+        idleTimeoutMillis: 5000,
         connectionTimeoutMillis: 5000,
       });
 

@@ -9,7 +9,7 @@ import { registerSchema, loginSchema } from '@krishnavedic/shared';
 const router = Router();
 
 function getGoogleOAuthClient() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = (process.env.GOOGLE_CLIENT_ID || '').replace(/^["']|["']$/g, '').trim();
   if (!clientId || clientId.startsWith('your-google-client-id')) {
     return null;
   }
@@ -139,9 +139,10 @@ router.post('/google', async (req: Request, res: Response, next: NextFunction) =
       throw new AppError(503, 'Google authentication is not configured on this server');
     }
 
+    const clientId = (process.env.GOOGLE_CLIENT_ID || '').replace(/^["']|["']$/g, '').trim();
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: clientId,
     });
 
     const payload = ticket.getPayload();
