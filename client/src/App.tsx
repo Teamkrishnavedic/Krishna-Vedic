@@ -5,7 +5,9 @@ import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { ToastProvider } from '@/context/ToastContext';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '183868560422-nrhjmms2bvm6ljsu5ob3dnavq0meneh8.apps.googleusercontent.com';
 
 // Layouts
 import StorefrontLayout from '@/layouts/StorefrontLayout';
@@ -106,7 +108,7 @@ export default function App() {
                 </Route>
 
                 {/* ── Admin (Protected — non-admins redirected to Home) ── */}
-                <Route path="/admin/login" element={<Navigate to="/admin" replace />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="products" element={<AdminProducts />} />
