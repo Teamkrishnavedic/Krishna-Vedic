@@ -62,15 +62,8 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const data = loginSchema.parse(req.body);
 
-    let user = await prisma.user.findUnique({ where: { email: data.email.toLowerCase().trim() } });
+    let user = await prisma.user.findUnique({ where: { email: data.email } });
     if (!user || !user.isActive) throw new AppError(401, 'Invalid email or password');
-
-    if (!user.passwordHash) {
-      throw new AppError(
-        401,
-        'This account was registered with Google Sign-In. Please click "Sign in with Google" to access your account.',
-      );
-    }
 
     const valid = await bcrypt.compare(data.password, user.passwordHash);
     if (!valid) throw new AppError(401, 'Invalid email or password');

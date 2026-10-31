@@ -15,7 +15,7 @@ export default function AdminProducts() {
     queryFn: async () => {
       let url = `/admin/products?limit=100`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
-      if (selectedCategory) url += `&categoryId=${encodeURIComponent(selectedCategory)}&category=${encodeURIComponent(selectedCategory)}`;
+      if (selectedCategory) url += `&categoryId=${selectedCategory}`;
       const res = await api.get(url);
       return res.data;
     },
@@ -25,7 +25,7 @@ export default function AdminProducts() {
     queryKey: ['admin-categories-list'],
     queryFn: async () => {
       const res = await api.get('/admin/categories');
-      return res.data?.categories || [];
+      return res.data.categories || [];
     },
   });
 
@@ -82,8 +82,7 @@ export default function AdminProducts() {
     return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
   };
 
-  const products = Array.isArray(productsData?.products) ? productsData.products : [];
-  const categoryList = Array.isArray(categories) ? categories : [];
+  const products = productsData?.products || [];
 
   return (
     <div className="space-y-6">
@@ -128,8 +127,8 @@ export default function AdminProducts() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="bg-[#f4f4ec] text-[#2d2a26] border border-[#e5e2da] text-xs py-2 px-4 rounded-full focus:outline-none focus:border-[#6e3418] cursor-pointer"
           >
-            <option value="">All Categories ({categoryList.length})</option>
-            {categoryList.map((c: any) => (
+            <option value="">All Categories ({categories.length})</option>
+            {categories.map((c: any) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>

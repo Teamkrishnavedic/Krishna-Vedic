@@ -34,65 +34,6 @@ const IMAGE_PRESETS = [
   { label: 'Organic Oil Cake (Khal)', url: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=1000&q=80' },
 ];
 
-// Helper to compress large device images in the browser before sending to Vercel/Cloudinary
-async function compressImageIfNeeded(file: File): Promise<File> {
-  if (!file.type.startsWith('image/') || file.size <= 1.5 * 1024 * 1024) {
-    return file;
-  }
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1920;
-        const MAX_HEIGHT = 1920;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(file);
-          return;
-        }
-
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              resolve(file);
-              return;
-            }
-            const cleanName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
-            const compressedFile = new File([blob], cleanName, { type: 'image/webp' });
-            resolve(compressedFile);
-          },
-          'image/webp',
-          0.85
-        );
-      };
-      img.onerror = () => resolve(file);
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => resolve(file);
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function AdminProductEdit() {
   const { id } = useParams<{ id: string }>();
   const isEditing = !!id && id !== 'new';
@@ -116,7 +57,6 @@ export default function AdminProductEdit() {
 
   // State for image management
   const [images, setImages] = useState<ProductImageItem[]>([]);
-  const [deletedVariantIds, setDeletedVariantIds] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [newImageAlt, setNewImageAlt] = useState('');
   const [isAddingImage, setIsAddingImage] = useState(false);
@@ -204,25 +144,15 @@ export default function AdminProductEdit() {
       setIsAddingImage(true);
       if (isEditing) {
         // Direct API call to save in cloud database immediately
-        try {
-          const res = await api.post(`/admin/products/${id}/images`, {
-            url: targetUrl,
-            altText: newImageAlt.trim() || formData.name || 'Product Image',
-            sortOrder: images.length,
-          });
-          toast({ title: 'Image Added', description: 'Visual asset linked to product', variant: 'success' });
-          queryClient.invalidateQueries({ queryKey: ['admin-product-detail', id] });
-          queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-          setImages((prev) => [...prev, res.data.image]);
-        } catch (apiErr: any) {
-          // If direct image link failed, stage in local state so Save Product can persist it
-          setImages((prev) => [...prev, { url: targetUrl, altText: newImageAlt.trim() || formData.name, sortOrder: prev.length }]);
-          toast({
-            title: 'Image Attached to Draft',
-            description: 'Image staged. Click "Save Product" below to sync and persist changes.',
-            variant: 'default',
-          });
-        }
+        const res = await api.post(`/admin/products/${id}/images`, {
+          url: targetUrl,
+          altText: newImageAlt.trim() || formData.name || 'Product Image',
+          sortOrder: images.length,
+        });
+        toast({ title: 'Image Added', description: 'Visual asset linked to product', variant: 'success' });
+        queryClient.invalidateQueries({ queryKey: ['admin-product-detail', id] });
+        queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+        setImages((prev) => [...prev, res.data.image]);
       } else {
         // For new product draft
         setImages((prev) => [...prev, { url: targetUrl, altText: newImageAlt.trim() || formData.name, sortOrder: prev.length }]);
@@ -245,16 +175,13 @@ export default function AdminProductEdit() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const uploadFormData = new FormData();
+    uploadFormData.append('image', file);
+
     try {
       setIsUploadingFile(true);
-      // Automatically compress oversized camera photos in-browser to stay below Vercel's 4.5 MB serverless limit
-      const fileToUpload = await compressImageIfNeeded(file);
-
-      const uploadFormData = new FormData();
-      uploadFormData.append('image', fileToUpload);
-
       const res = await api.post('/upload/product-image', uploadFormData, {
-        headers: { 'Content-Type': undefined },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const uploadedUrl = res.data.url;
@@ -354,18 +281,6 @@ export default function AdminProductEdit() {
   };
 
   const handleRemoveVariant = (index: number) => {
-    if (formData.variants.length <= 1) {
-      toast({
-        title: 'Action Restricted',
-        description: 'A product must have at least one active packaging variant.',
-        variant: 'default',
-      });
-      return;
-    }
-    const variantToRemove = formData.variants[index] as any;
-    if (variantToRemove?.id) {
-      setDeletedVariantIds((prev) => [...prev, variantToRemove.id]);
-    }
     setFormData((prev) => ({
       ...prev,
       variants: prev.variants.filter((_, idx) => idx !== index),
@@ -394,56 +309,7 @@ export default function AdminProductEdit() {
       };
 
       if (isEditing) {
-        const updateRes = await api.put(`/admin/products/${id}`, payload);
-
-        // Delete removed variants
-        for (const vId of deletedVariantIds) {
-          await api.delete(`/admin/variants/${vId}`).catch(() => {});
-        }
-
-        // Upsert variants
-        if (formData.variants.length > 0) {
-          for (let i = 0; i < formData.variants.length; i++) {
-            const v = formData.variants[i] as any;
-            const vPayload = {
-              productId: id,
-              name: v.name,
-              sku: v.sku || `${formData.sku}-${v.name.replace(/\s+/g, '')}`,
-              price: Math.max(1, Math.round(Number(v.price) * 100)),
-              compareAtPrice: v.compareAtPrice && Number(v.compareAtPrice) > 0 ? Math.round(Number(v.compareAtPrice) * 100) : undefined,
-              stock: Math.max(0, parseInt(String(v.stock), 10) || 0),
-              lowStockThreshold: Math.max(0, parseInt(String(v.lowStockThreshold), 10) || 5),
-              sortOrder: i,
-            };
-
-            if (v.id) {
-              await api.put(`/admin/variants/${v.id}`, vPayload).catch(() => {});
-            } else {
-              await api.post('/admin/variants', vPayload).catch(() => {});
-            }
-          }
-        }
-
-        // Persist any staged images that haven't been saved to DB yet
-        if (images.length > 0) {
-          for (let i = 0; i < images.length; i++) {
-            const img = images[i];
-            if (!img.id && img.url) {
-              try {
-                const imgRes = await api.post(`/admin/products/${id}/images`, {
-                  url: img.url,
-                  altText: img.altText || formData.name,
-                  sortOrder: i,
-                });
-                if (imgRes.data?.image?.id) {
-                  img.id = imgRes.data.image.id;
-                }
-              } catch (_) {}
-            }
-          }
-        }
-
-        return updateRes;
+        return api.put(`/admin/products/${id}`, payload);
       } else {
         const createRes = await api.post('/admin/products', payload);
         const newProd = createRes.data.product;
@@ -461,17 +327,15 @@ export default function AdminProductEdit() {
 
         // Create variants for new product
         if (formData.variants.length > 0) {
-          for (let i = 0; i < formData.variants.length; i++) {
-            const v = formData.variants[i] as any;
+          for (const v of formData.variants) {
             await api.post('/admin/variants', {
               productId: newProd.id,
               name: v.name,
               sku: v.sku || `${newProd.sku}-${v.name.replace(/\s+/g, '')}`,
-              price: Math.max(1, Math.round(Number(v.price) * 100)),
-              compareAtPrice: v.compareAtPrice && Number(v.compareAtPrice) > 0 ? Math.round(Number(v.compareAtPrice) * 100) : undefined,
-              stock: Math.max(0, parseInt(String(v.stock), 10) || 0),
-              lowStockThreshold: Math.max(0, parseInt(String(v.lowStockThreshold), 10) || 5),
-              sortOrder: i,
+              price: v.price * 100, // into paise
+              compareAtPrice: v.compareAtPrice ? v.compareAtPrice * 100 : undefined,
+              stock: v.stock,
+              lowStockThreshold: v.lowStockThreshold || 5,
             }).catch(() => {});
           }
         }
@@ -481,9 +345,6 @@ export default function AdminProductEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-product-detail', id] });
-      queryClient.invalidateQueries({ queryKey: ['product', formData.slug] });
-      queryClient.invalidateQueries({ queryKey: ['shop-all-products'] });
       toast({
         title: isEditing ? 'Product Updated' : 'Product Created',
         description: 'Product specifications and visual assets saved successfully',

@@ -465,12 +465,12 @@ export default function ProductPage() {
             Complete Your Traditional Kitchen
           </h2>
 
-          <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-stretch">
-            {/* Visual Pairing Thumbnails (Flexible, spacious, never overflows) */}
-            <div className="flex-1 min-w-0 flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Visual Pairing Thumbnails */}
+            <div className="lg:col-span-7 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               {/* Item 1: Current Product */}
               <div
-                className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all w-full flex-1 min-w-0 ${
+                className={`relative flex items-center gap-4 p-3.5 rounded-2xl border transition-all w-full sm:w-auto flex-1 ${
                   includeCurrent
                     ? 'border-primary/50 bg-surface shadow-xs'
                     : 'border-outline-variant/30 opacity-60 bg-surface/50'
@@ -500,13 +500,13 @@ export default function ProductPage() {
               </div>
 
               {/* Plus Sign */}
-              <div className="w-8 h-8 rounded-full bg-secondary/10 border border-secondary/25 flex items-center justify-center text-secondary font-bold text-base flex-shrink-0 shadow-xs">
+              <div className="w-9 h-9 rounded-full bg-secondary/10 border border-secondary/25 flex items-center justify-center text-secondary font-bold text-lg flex-shrink-0 shadow-xs">
                 +
               </div>
 
               {/* Item 2: Complementary Pair */}
               <div
-                className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all w-full flex-1 min-w-0 ${
+                className={`relative flex items-center gap-4 p-3.5 rounded-2xl border transition-all w-full sm:w-auto flex-1 ${
                   includePair
                     ? 'border-primary/50 bg-surface shadow-xs'
                     : 'border-outline-variant/30 opacity-60 bg-surface/50'
@@ -543,8 +543,8 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Bundle Pricing & 1-Click CTA (Fixed safe width on wide screens, never overlapped) */}
-            <div className="w-full xl:w-96 shrink-0 bg-surface p-5 sm:p-6 rounded-2xl border border-outline-variant/40 shadow-xs flex flex-col justify-between space-y-4">
+            {/* Bundle Pricing & 1-Click CTA */}
+            <div className="lg:col-span-5 bg-surface p-5 sm:p-6 rounded-2xl border border-outline-variant/40 shadow-xs flex flex-col justify-between space-y-4">
               <div>
                 <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">
                   Total Bundle Price
@@ -648,7 +648,7 @@ export default function ProductPage() {
         <div className="py-8 max-w-3xl space-y-4 text-on-surface-variant leading-relaxed text-sm">
           {activeTab === 'description' && (
             <div className="space-y-4">
-              <p className="whitespace-pre-line leading-relaxed">{product.description || 'Our artisanal oils and spices are handcrafted using age-old Vedic methods to retain maximum aroma, nutrient vitality, and authentic flavor.'}</p>
+              <p>{product.description || 'Our artisanal oils and spices are handcrafted using age-old Vedic methods to retain maximum aroma, nutrient vitality, and authentic flavor.'}</p>
               <p>Every bottle is carefully extracted without thermal degradation, chemical solvents, or artificial refining agents. You experience pure nature direct from our farming guilds.</p>
             </div>
           )}

@@ -10,16 +10,7 @@ import fs from 'fs';
 
 const router = Router();
 
-const ALLOWED_MIME_TYPES = [
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'image/heic',
-  'image/heif',
-  'image/jfif',
-];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 function getCloudinaryConfig() {
