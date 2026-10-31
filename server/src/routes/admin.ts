@@ -260,9 +260,7 @@ router.get('/products', async (req: Request, res: Response, next: NextFunction) 
         },
         select: { id: true },
       });
-      if (cat) {
-        where.categoryId = cat.id;
-      }
+      where.categoryId = cat ? cat.id : targetCategory;
     }
 
     if (search) {

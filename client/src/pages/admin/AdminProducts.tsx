@@ -15,7 +15,7 @@ export default function AdminProducts() {
     queryFn: async () => {
       let url = `/admin/products?limit=100`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
-      if (selectedCategory) url += `&categoryId=${encodeURIComponent(selectedCategory)}`;
+      if (selectedCategory) url += `&categoryId=${encodeURIComponent(selectedCategory)}&category=${encodeURIComponent(selectedCategory)}`;
       const res = await api.get(url);
       return res.data;
     },
