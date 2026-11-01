@@ -8,8 +8,8 @@ import { sendAdminOrderNotification } from '../lib/email';
 const router = Router();
 
 // Calculate shipping charge based on rules
-async function calculateShipping(subtotal: number): Promise<number> {
-  const rules = await prisma.shippingRule.findMany({
+async function calculateShipping(subtotal: number, client: any = prisma): Promise<number> {
+  const rules = await client.shippingRule.findMany({
     where: { isActive: true },
     orderBy: { minOrderValue: 'asc' },
   });
@@ -31,8 +31,9 @@ async function applyCoupon(
   code: string,
   subtotal: number,
   userId?: string,
+  client: any = prisma,
 ): Promise<{ coupon: any; discount: number }> {
-  const coupon = await prisma.coupon.findUnique({ where: { code } });
+  const coupon = await client.coupon.findUnique({ where: { code } });
 
   if (!coupon || !coupon.isActive) throw new AppError(400, 'Invalid or expired coupon');
 
@@ -50,7 +51,7 @@ async function applyCoupon(
   }
 
   if (userId && coupon.maxUsesPerUser > 0) {
-    const userUses = await prisma.couponRedemption.count({
+    const userUses = await client.couponRedemption.count({
       where: { couponId: coupon.id, userId },
     });
     if (userUses >= coupon.maxUsesPerUser) {
@@ -233,7 +234,7 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
       let discountAmount = 0;
       let couponId: string | null = null;
       if (data.couponCode) {
-        const { coupon, discount } = await applyCoupon(data.couponCode, subtotal, userId);
+        const { coupon, discount } = await applyCoupon(data.couponCode, subtotal, userId, tx);
         discountAmount = discount;
         couponId = coupon.id;
         await tx.coupon.update({
@@ -242,7 +243,7 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
         });
       }
 
-      const shippingCharge = await calculateShipping(subtotal - discountAmount);
+      const shippingCharge = await calculateShipping(subtotal - discountAmount, tx);
       const total = subtotal - discountAmount + shippingCharge;
 
       const orderNumber = `KV-${Date.now()}-${nanoid(6).toUpperCase()}`;

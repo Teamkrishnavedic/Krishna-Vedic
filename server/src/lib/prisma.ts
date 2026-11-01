@@ -8,14 +8,14 @@ function getPrismaClient(): PrismaClient {
   const isVercel = process.env.VERCEL === '1' || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
 
   if (url) {
-    // In serverless environments (Vercel), each container processes requests sequentially.
-    // Enforcing connection_limit=1 ensures Lambda instances do not monopolize database connection slots.
-    const connLimit = isVercel ? '1' : '2';
+    // Allow 2 connections per container so that transactions and concurrent queries
+    // never deadlock each other while staying well within Aiven's 20-connection limit.
+    const connLimit = isVercel ? '2' : '3';
 
     if (!url.includes('connection_limit=')) {
       const sep = url.includes('?') ? '&' : '?';
-      url = `${url}${sep}connection_limit=${connLimit}&pool_timeout=10`;
-    } else if (isVercel) {
+      url = `${url}${sep}connection_limit=${connLimit}&pool_timeout=15`;
+    } else {
       url = url.replace(/connection_limit=\d+/, `connection_limit=${connLimit}`);
     }
 
