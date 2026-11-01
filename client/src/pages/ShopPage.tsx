@@ -68,6 +68,7 @@ export default function ShopPage() {
       const res = await api.get('/products?limit=100');
       return res.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   // 2. Fetch live categories directly from database (admin added / updated)
@@ -77,6 +78,7 @@ export default function ShopPage() {
       const res = await api.get('/categories');
       return res.data.categories || [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const allProducts: any[] = productsData?.products || [];

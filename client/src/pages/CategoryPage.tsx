@@ -19,6 +19,7 @@ export default function CategoryPage() {
     queryKey: ['category', slug],
     queryFn: () => api.get(`/categories/${slug}`).then((r) => r.data.category),
     enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: productsData, isLoading: isProdLoading } = useQuery({
@@ -28,6 +29,7 @@ export default function CategoryPage() {
         .get(`/products?category=${slug}&page=${page}&limit=24&sort=${sortBy}`)
         .then((r) => r.data),
     enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleAddToCart = async (variantId: string, name: string) => {

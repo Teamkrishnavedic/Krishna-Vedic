@@ -45,6 +45,9 @@ const productSelect = {
 // GET /api/products
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache for 60s at edge, stale-while-revalidate for 300s
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
+
     const {
       category,
       categoryId,
@@ -152,6 +155,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // Calculates true bestsellers based on cumulative units sold across valid customer orders
 router.get('/bestsellers', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache for 5 mins at CDN edge, background revalidate for 10 mins
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+
     const limit = Math.min(parseInt((req.query.limit as string) || '4', 10), 20);
 
     // 1. Group all sold OrderItems across non-cancelled, non-refunded orders
@@ -171,17 +177,28 @@ router.get('/bestsellers', async (req: Request, res: Response, next: NextFunctio
       },
     });
 
-    // 2. Map sold quantities to product IDs
+    // 2. Map sold quantities to product IDs (single batch query instead of N sequential round-trips)
     const productSalesMap = new Map<string, number>();
-    for (const item of salesByVariant) {
-      if (item.variantId && item._sum.quantity) {
-        const variant = await prisma.productVariant.findUnique({
-          where: { id: item.variantId },
-          select: { productId: true },
-        });
-        if (variant?.productId) {
-          const current = productSalesMap.get(variant.productId) || 0;
-          productSalesMap.set(variant.productId, current + item._sum.quantity);
+    const variantIds = salesByVariant
+      .map((item) => item.variantId)
+      .filter((id): id is string => typeof id === 'string');
+
+    if (variantIds.length > 0) {
+      const variants = await prisma.productVariant.findMany({
+        where: { id: { in: variantIds } },
+        select: { id: true, productId: true },
+      });
+      const variantToProduct = new Map<string, string>(
+        variants.map((v) => [v.id, v.productId])
+      );
+
+      for (const item of salesByVariant) {
+        if (item.variantId && item._sum.quantity) {
+          const prodId = variantToProduct.get(item.variantId);
+          if (prodId) {
+            const current = productSalesMap.get(prodId) || 0;
+            productSalesMap.set(prodId, current + item._sum.quantity);
+          }
         }
       }
     }
@@ -217,6 +234,9 @@ router.get('/bestsellers', async (req: Request, res: Response, next: NextFunctio
 // GET /api/products/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache product detail page for 5 mins at CDN edge, background revalidate for 10 mins
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+
     const product = await prisma.product.findUnique({
       where: { slug: getRouteParam(req.params.slug, 'slug') },
       select: productSelect,
@@ -226,33 +246,7 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
     if (product.status === 'DRAFT') throw new AppError(404, 'Product not found');
 
     // ─── Amazon-Style Recommendation Algorithm ──────────────────────────
-    // 1. Similar Products: same category first, fallback to featured catalogue
-    const sameCategory = await prisma.product.findMany({
-      where: {
-        status: 'PUBLISHED',
-        id: { not: product.id },
-        ...(product.categoryId ? { categoryId: product.categoryId } : {}),
-      },
-      select: productSelect,
-      take: 6,
-      orderBy: { isFeatured: 'desc' },
-    });
-
-    let similarProducts = [...sameCategory];
-    if (similarProducts.length < 4) {
-      const more = await prisma.product.findMany({
-        where: {
-          status: 'PUBLISHED',
-          id: { notIn: [product.id, ...similarProducts.map((p) => p.id)] },
-        },
-        select: productSelect,
-        take: 6 - similarProducts.length,
-        orderBy: { isFeatured: 'desc' },
-      });
-      similarProducts.push(...more);
-    }
-
-    // 2. Frequently Bought Together (Complementary pairing logic)
+    // Construct pairFilter for frequentlyBoughtTogether
     const currentName = product.name.toLowerCase();
     const currentCategory = (product.category?.name || '').toLowerCase();
 
@@ -299,14 +293,45 @@ router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => 
       }
     }
 
-    let frequentlyBoughtTogether = await prisma.product.findFirst({
-      where: pairFilter,
-      select: productSelect,
-      orderBy: { isFeatured: 'desc' },
-    });
+    // Parallelize similar products query and frequently bought together query
+    const [sameCategory, frequentlyBoughtTogetherCandidate] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          status: 'PUBLISHED',
+          id: { not: product.id },
+          ...(product.categoryId ? { categoryId: product.categoryId } : {}),
+        },
+        select: productSelect,
+        take: 6,
+        orderBy: { isFeatured: 'desc' },
+      }),
+      prisma.product.findFirst({
+        where: pairFilter,
+        select: productSelect,
+        orderBy: { isFeatured: 'desc' },
+      }),
+    ]);
 
+    let similarProducts = [...sameCategory];
+    if (similarProducts.length < 4) {
+      const more = await prisma.product.findMany({
+        where: {
+          status: 'PUBLISHED',
+          id: { notIn: [product.id, ...similarProducts.map((p) => p.id)] },
+        },
+        select: productSelect,
+        take: 6 - similarProducts.length,
+        orderBy: { isFeatured: 'desc' },
+      });
+      similarProducts.push(...more);
+    }
+
+    let frequentlyBoughtTogether = frequentlyBoughtTogetherCandidate;
     if (!frequentlyBoughtTogether) {
-      frequentlyBoughtTogether = similarProducts.find((p) => p.variants?.some((v) => v.price > 0)) || similarProducts[0] || null;
+      frequentlyBoughtTogether =
+        similarProducts.find((p) => p.variants?.some((v) => v.price > 0)) ||
+        similarProducts[0] ||
+        null;
     }
 
     res.json({

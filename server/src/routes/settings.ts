@@ -6,6 +6,9 @@ const router = Router();
 // GET /api/settings/store
 router.get('/store', async (_req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache store settings for 10 mins at edge, background revalidate for 20 mins
+    res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=1200');
+
     const settings = await prisma.storeSetting.findMany();
     const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
 

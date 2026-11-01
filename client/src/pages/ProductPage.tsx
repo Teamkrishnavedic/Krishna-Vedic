@@ -66,6 +66,7 @@ export default function ProductPage() {
       return res.data;
     },
     enabled: !!slug,
+    staleTime: 5 * 60 * 1000,
   });
 
   const product = productData?.product;

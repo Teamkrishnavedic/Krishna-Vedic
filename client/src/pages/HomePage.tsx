@@ -124,6 +124,7 @@ export default function HomePage() {
       const res = await api.get('/products/bestsellers?limit=4');
       return res.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: categoriesData, isLoading: isCategoriesLoading } = useQuery({
@@ -132,6 +133,7 @@ export default function HomePage() {
       const res = await api.get('/categories');
       return res.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleAddToCart = async (variantId: string, quantity: number) => {

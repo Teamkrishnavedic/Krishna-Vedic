@@ -23,6 +23,9 @@ const categorySelect = {
 // GET /api/categories
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache category tree for 10 mins at edge, background revalidate for 20 mins
+    res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=1200');
+
     const categories = await prisma.category.findMany({
       where: { parentId: null },
       select: categorySelect,
@@ -52,6 +55,9 @@ const CATEGORY_ALIASES: Record<string, string> = {
 // GET /api/categories/:slug
 router.get('/:slug', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    // Vercel Edge Cache: Cache category details for 10 mins at edge, background revalidate for 20 mins
+    res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=1200');
+
     const slugParam = getRouteParam(req.params.slug, 'slug');
     const raw = slugParam.toLowerCase().trim();
     const targetSlug = CATEGORY_ALIASES[raw] || raw;

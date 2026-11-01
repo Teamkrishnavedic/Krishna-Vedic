@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Check } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 
 interface Variant {
@@ -37,6 +39,20 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     variants[0]?.id || ''
   );
   const [added, setAdded] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handlePrefetch = () => {
+    if (product?.slug) {
+      queryClient.prefetchQuery({
+        queryKey: ['product', product.slug],
+        queryFn: async () => {
+          const res = await api.get(`/products/${product.slug}`);
+          return res.data;
+        },
+        staleTime: 5 * 60 * 1000,
+      });
+    }
+  };
 
   const currentVariant =
     variants.find((v) => v.id === selectedVariantId) || variants[0] || null;
@@ -110,7 +126,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   };
 
   return (
-    <article className="group bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418]/40 hover:shadow-md transition-all duration-300">
+    <article
+      onMouseEnter={handlePrefetch}
+      onTouchStart={handlePrefetch}
+      className="group bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418]/40 hover:shadow-md transition-all duration-300"
+    >
       {/* ─── 1. Product Image: 1:1 Square, Clean & Spacious ─────────── */}
       <div className="relative aspect-square w-full overflow-hidden bg-[#f4f4ec]">
         <Link to={`/products/${product.slug}`} className="block w-full h-full">
