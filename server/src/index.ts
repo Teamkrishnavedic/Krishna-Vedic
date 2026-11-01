@@ -22,6 +22,24 @@ async function main() {
     console.warn('⚠️ Google OAuth DB check:', err.message);
   }
 
+  // Ensure user_sessions table exists in database
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "user_sessions" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        CONSTRAINT "user_sessions_pkey" PRIMARY KEY ("sid")
+      );
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "user_sessions" ("expire");
+    `);
+    console.log('✅ Session store database schema verified');
+  } catch (err: any) {
+    console.warn('⚠️ Session table check:', err.message);
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`   Environment: ${process.env.NODE_ENV}`);

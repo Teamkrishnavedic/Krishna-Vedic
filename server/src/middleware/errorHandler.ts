@@ -30,6 +30,21 @@ export function errorHandler(
     return;
   }
 
+  // Database connection exhaustion or pool timeout
+  if (
+    err.name === 'PrismaClientInitializationError' ||
+    err.message?.includes('Too many database connections') ||
+    err.message?.includes('remaining connection slots are reserved')
+  ) {
+    console.error('⚠️ Database connection capacity reached:', err.message);
+    res.setHeader('Retry-After', '2');
+    res.status(503).json({
+      error: 'Database is momentarily busy. Please try again shortly.',
+      code: 'DB_BUSY',
+    });
+    return;
+  }
+
   // Prisma errors
   if (err.constructor.name === 'PrismaClientKnownRequestError') {
     const prismaErr = err as any;
