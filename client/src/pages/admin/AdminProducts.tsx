@@ -40,6 +40,35 @@ export default function AdminProducts() {
     },
   });
 
+  const updateCategoryMutation = useMutation({
+    mutationFn: ({ productId, categoryId }: { productId: string; categoryId: string }) =>
+      api.patch(`/admin/products/${productId}/category`, { categoryId }),
+    onSuccess: (res) => {
+      const catName = res.data?.product?.category?.name || 'new category';
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      queryClient.invalidateQueries({ queryKey: ['shop-all-products'] });
+      queryClient.invalidateQueries({ queryKey: ['category-products'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast({
+        title: 'Category Updated',
+        description: `Product categorized under "${catName}"`,
+        variant: 'success',
+      });
+    },
+    onError: (err: any) => {
+      toast({
+        title: 'Update Failed',
+        description: err.response?.data?.message || err.message || 'Could not update category',
+        variant: 'error',
+      });
+    },
+  });
+
+  const handleCategoryChange = (productId: string, newCategoryId: string) => {
+    if (!newCategoryId) return;
+    updateCategoryMutation.mutate({ productId, categoryId: newCategoryId });
+  };
+
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       deleteMutation.mutate(id);
@@ -211,9 +240,19 @@ export default function AdminProducts() {
 
                       {/* Category */}
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 bg-[#f4f4ec] rounded-full text-[11px] font-medium text-[#52443c] border border-[#e5e2da]">
-                          {p.category?.name || 'General'}
-                        </span>
+                        <select
+                          value={p.categoryId || p.category?.id || ''}
+                          onChange={(e) => handleCategoryChange(p.id, e.target.value)}
+                          className="bg-[#f4f4ec] hover:bg-[#edece2] text-[#2d2a26] border border-[#e5e2da] text-xs font-medium py-1 px-2.5 rounded-full focus:outline-none focus:border-[#6e3418] cursor-pointer max-w-[170px] truncate transition-colors"
+                          title="Click to categorize product"
+                        >
+                          <option value="" disabled>Select Category</option>
+                          {categories.map((c: any) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
                       </td>
 
                       {/* SKU */}

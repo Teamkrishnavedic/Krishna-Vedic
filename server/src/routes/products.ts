@@ -102,6 +102,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       });
       if (cat) {
         where.categoryId = cat.id;
+      } else {
+        where.categoryId = 'not-found';
       }
     }
 

@@ -97,7 +97,7 @@ export default function AdminProductEdit() {
         name: existingProduct.name || '',
         slug: existingProduct.slug || '',
         sku: existingProduct.sku || '',
-        categoryId: existingProduct.categoryId || '',
+        categoryId: existingProduct.categoryId || existingProduct.category?.id || '',
         shortDescription: existingProduct.shortDescription || '',
         description: existingProduct.description || '',
         status: existingProduct.status || 'PUBLISHED',
@@ -345,6 +345,12 @@ export default function AdminProductEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-product-detail'] });
+      queryClient.invalidateQueries({ queryKey: ['shop-all-products'] });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['category-products'] });
+      queryClient.invalidateQueries({ queryKey: ['home-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['home-bestsellers'] });
       toast({
         title: isEditing ? 'Product Updated' : 'Product Created',
         description: 'Product specifications and visual assets saved successfully',

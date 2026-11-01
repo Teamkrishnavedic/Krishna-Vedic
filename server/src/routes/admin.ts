@@ -242,19 +242,37 @@ router.delete('/categories/:id', requireAdmin, async (req: Request, res: Respons
 
 router.get('/products', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { page = '1', limit = '20', status, category, search } = req.query;
+    const { page = '1', limit = '20', status, category, categoryId, search } = req.query;
     const take = Math.min(parseInt(limit as string, 10), 100);
     const skip = (parseInt(page as string, 10) - 1) * take;
 
-    const where: any = {};
-    if (status) where.status = status;
-    if (category) where.category = { slug: category };
-    if (search) {
-      where.OR = [
-        { name: { contains: search as string } },
-        { sku: { contains: search as string } },
-      ];
+    const andConditions: any[] = [];
+
+    if (status) {
+      andConditions.push({ status: status as string });
     }
+
+    const catFilter = (categoryId || category) as string | undefined;
+    if (catFilter && catFilter !== 'all') {
+      andConditions.push({
+        OR: [
+          { categoryId: catFilter },
+          { category: { id: catFilter } },
+          { category: { slug: catFilter } },
+        ],
+      });
+    }
+
+    if (search) {
+      andConditions.push({
+        OR: [
+          { name: { contains: search as string } },
+          { sku: { contains: search as string } },
+        ],
+      });
+    }
+
+    const where: any = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const [total, products] = await Promise.all([
       prisma.product.count({ where }),
@@ -299,10 +317,28 @@ router.get('/products/:id', async (req: Request, res: Response, next: NextFuncti
 router.post('/products', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = productSchema.parse(req.body);
+
+    let targetCategoryId = data.categoryId;
+    const catExists = await prisma.category.findUnique({ where: { id: targetCategoryId } });
+    if (!catExists) {
+      const catBySlug = await prisma.category.findFirst({
+        where: { OR: [{ slug: targetCategoryId }, { slug: targetCategoryId.toLowerCase() }] },
+      });
+      if (catBySlug) {
+        targetCategoryId = catBySlug.id;
+      } else {
+        throw new AppError(400, 'Selected category does not exist');
+      }
+    }
+
     const product = await prisma.product.create({
       data: {
         ...data,
+        categoryId: targetCategoryId,
         tags: JSON.stringify(data.tags),
+      },
+      include: {
+        category: true,
       },
     });
     await auditLog(req, 'CREATE_PRODUCT', 'Product', product.id, null, product);
@@ -316,12 +352,61 @@ router.put('/products/:id', requireAdmin, async (req: Request, res: Response, ne
   try {
     const id = getRouteParam(req.params.id, 'productId');
     const data = productSchema.parse(req.body);
+
+    let targetCategoryId = data.categoryId;
+    const catExists = await prisma.category.findUnique({ where: { id: targetCategoryId } });
+    if (!catExists) {
+      const catBySlug = await prisma.category.findFirst({
+        where: { OR: [{ slug: targetCategoryId }, { slug: targetCategoryId.toLowerCase() }] },
+      });
+      if (catBySlug) {
+        targetCategoryId = catBySlug.id;
+      } else {
+        throw new AppError(400, 'Selected category does not exist');
+      }
+    }
+
     const old = await prisma.product.findUnique({ where: { id } });
     const product = await prisma.product.update({
       where: { id },
-      data: { ...data, tags: JSON.stringify(data.tags) },
+      data: {
+        ...data,
+        categoryId: targetCategoryId,
+        tags: JSON.stringify(data.tags),
+      },
+      include: {
+        category: true,
+      },
     });
     await auditLog(req, 'UPDATE_PRODUCT', 'Product', product.id, old, product);
+    res.json({ product });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/products/:id/category', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = getRouteParam(req.params.id, 'productId');
+    const { categoryId } = req.body;
+    if (!categoryId) throw new AppError(400, 'Category ID is required');
+
+    let targetCategoryId = categoryId;
+    const cat = await prisma.category.findFirst({
+      where: { OR: [{ id: categoryId }, { slug: categoryId }] },
+    });
+    if (!cat) throw new AppError(404, 'Category not found');
+    targetCategoryId = cat.id;
+
+    const old = await prisma.product.findUnique({ where: { id }, include: { category: true } });
+    const product = await prisma.product.update({
+      where: { id },
+      data: { categoryId: targetCategoryId },
+      include: {
+        category: true,
+      },
+    });
+    await auditLog(req, 'UPDATE_PRODUCT_CATEGORY', 'Product', product.id, old, product);
     res.json({ product });
   } catch (err) {
     next(err);
