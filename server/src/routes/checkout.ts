@@ -100,7 +100,8 @@ router.post('/validate', async (req: Request, res: Response, next: NextFunction)
       });
 
       if (!variant || variant.product.status !== 'PUBLISHED') {
-        throw new AppError(400, `"${item.variant.product.name}" is no longer available`);
+        const prodName = variant?.product?.name || item?.variant?.product?.name || 'Item';
+        throw new AppError(400, `"${prodName}" is no longer available`);
       }
       if (variant.stock < item.quantity) {
         throw new AppError(400, `Insufficient stock for "${variant.product.name} — ${variant.name}"`);
@@ -199,7 +200,8 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
         });
 
         if (!variant || variant.product.status !== 'PUBLISHED') {
-          throw new AppError(400, `"${item.variant.product.name}" is no longer available`);
+          const prodName = variant?.product?.name || item?.variant?.product?.name || 'Item';
+          throw new AppError(400, `"${prodName}" is no longer available`);
         }
         if (variant.stock < item.quantity) {
           throw new AppError(
@@ -336,6 +338,9 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return createdOrder;
+    }, {
+      maxWait: 10000, // 10 seconds to acquire connection
+      timeout: 20000, // 20 seconds for cross-region serverless round-trips
     });
 
     // Send real-time order alert email to admin via Resend (asynchronous / non-blocking)

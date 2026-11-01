@@ -150,7 +150,11 @@ export default function CheckoutPage() {
     } catch (err: any) {
       toast({
         title: 'Checkout Failed',
-        description: err.response?.data?.message || err.message || 'Could not process order. Please retry.',
+        description:
+          err.response?.data?.error ||
+          err.response?.data?.message ||
+          err.message ||
+          'Could not process order. Please retry.',
         variant: 'error',
       });
     } finally {

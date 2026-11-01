@@ -66,10 +66,9 @@ export function errorHandler(
 
   // Default
   console.error('[Error]', err);
+  const errorMessage = err.message || 'Internal server error';
   res.status(500).json({
-    error:
-      process.env.NODE_ENV === 'production'
-        ? 'Internal server error'
-        : err.message,
+    error: errorMessage,
+    message: errorMessage,
   });
 }
