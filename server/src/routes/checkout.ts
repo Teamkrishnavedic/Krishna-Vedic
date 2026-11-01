@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { AppError } from '../middleware/errorHandler';
 import { checkoutSchema } from '@krishnavedic/shared';
 import { nanoid } from 'nanoid';
+import { sendAdminOrderNotification } from '../lib/email';
 
 const router = Router();
 
@@ -270,6 +271,9 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
           idempotencyKey: idempotencyKey || null,
           items: { create: orderItemsData },
         },
+        include: {
+          items: true,
+        },
       });
 
       // Status history entry
@@ -332,6 +336,34 @@ router.post('/place-order', async (req: Request, res: Response, next: NextFuncti
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
 
       return createdOrder;
+    });
+
+    // Send real-time order alert email to admin via Resend (asynchronous / non-blocking)
+    sendAdminOrderNotification({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      total: order.total,
+      subtotal: order.subtotal,
+      shippingCharge: order.shippingCharge,
+      discountAmount: order.discountAmount,
+      paymentMethod: order.paymentMethod,
+      shippingName: order.shippingName,
+      shippingPhone: order.shippingPhone,
+      shippingLine1: order.shippingLine1,
+      shippingLine2: order.shippingLine2,
+      shippingCity: order.shippingCity,
+      shippingState: order.shippingState,
+      shippingPincode: order.shippingPincode,
+      deliveryInstructions: order.deliveryInstructions,
+      items: order.items.map((item) => ({
+        productName: item.productName,
+        variantName: item.variantName,
+        quantity: item.quantity,
+        priceSnapshot: item.priceSnapshot,
+        subtotal: item.subtotal,
+      })),
+    }).catch((err) => {
+      console.error('[Checkout] Background admin email alert error:', err);
     });
 
     res.status(201).json({

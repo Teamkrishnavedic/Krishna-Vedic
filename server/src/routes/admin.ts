@@ -733,14 +733,59 @@ router.get('/orders/:id', async (req: Request, res: Response, next: NextFunction
       where: { id },
       include: {
         user: { select: { name: true, email: true, phone: true } },
-        items: true,
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: {
+                  include: {
+                    images: { orderBy: { sortOrder: 'asc' } },
+                  },
+                },
+              },
+            },
+          },
+        },
         payment: { include: { events: true } },
         statusHistory: { orderBy: { createdAt: 'desc' } },
         inventoryMovements: { include: { variant: { select: { name: true } } } },
       },
     });
     if (!order) throw new AppError(404, 'Order not found');
-    res.json({ order });
+
+    // Attach product and live images directly to each item
+    const productNames = order.items
+      .filter((i) => !i.variant?.product)
+      .map((i) => i.productName);
+
+    let fallbackProducts: any[] = [];
+    if (productNames.length > 0) {
+      fallbackProducts = await prisma.product.findMany({
+        where: { name: { in: productNames } },
+        include: { images: { orderBy: { sortOrder: 'asc' } } },
+      });
+    }
+    const fallbackMap = new Map(fallbackProducts.map((p) => [p.name, p]));
+
+    const transformedOrder = {
+      ...order,
+      items: order.items.map((item) => {
+        const prod = item.variant?.product || fallbackMap.get(item.productName) || null;
+        return {
+          ...item,
+          product: prod
+            ? {
+                id: prod.id,
+                name: prod.name,
+                slug: prod.slug,
+                images: prod.images,
+              }
+            : null,
+        };
+      }),
+    };
+
+    res.json({ order: transformedOrder });
   } catch (err) {
     next(err);
   }

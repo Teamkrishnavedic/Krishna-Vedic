@@ -43,6 +43,21 @@ const orderSelect = {
       priceSnapshot: true,
       quantity: true,
       subtotal: true,
+      variant: {
+        select: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              images: {
+                select: { id: true, url: true, altText: true },
+                orderBy: { sortOrder: 'asc' as const },
+              },
+            },
+          },
+        },
+      },
     },
   },
   payment: {

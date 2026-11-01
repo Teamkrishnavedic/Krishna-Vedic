@@ -99,18 +99,33 @@ export default function OrderDetailPage() {
             Purchased Harvest Items
           </h2>
           <div className="divide-y divide-outline-variant/20 border border-outline-variant/30 bg-surface-container-low p-4">
-            {order.items?.map((item: any) => (
-              <div key={item.id} className="py-3 flex justify-between items-center text-sm">
-                <div>
-                  <p className="font-bold text-on-surface">{item.productName}</p>
-                  <p className="text-xs text-on-surface-variant">Variant: {item.variantName} • Qty: {item.quantity}</p>
-                  <p className="text-xs text-outline">Unit Price: {formatPrice(item.priceSnapshot)}</p>
+            {order.items?.map((item: any) => {
+              const prod = item.product || item.variant?.product;
+              const firstImg = prod?.images?.[0];
+              const itemImg = typeof firstImg === 'string' ? firstImg : (firstImg?.url || '');
+
+              return (
+                <div key={item.id} className="py-3 flex justify-between items-center text-sm gap-4">
+                  <div className="flex items-center gap-3">
+                    {itemImg ? (
+                      <img
+                        src={itemImg}
+                        alt={item.productName}
+                        className="w-12 h-12 rounded-xl object-cover border border-outline-variant/30 bg-surface-container shrink-0"
+                      />
+                    ) : null}
+                    <div>
+                      <p className="font-bold text-on-surface">{item.productName}</p>
+                      <p className="text-xs text-on-surface-variant">Variant: {item.variantName} • Qty: {item.quantity}</p>
+                      <p className="text-xs text-outline">Unit Price: {formatPrice(item.priceSnapshot)}</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-primary font-serif shrink-0">
+                    {formatPrice(item.subtotal || item.priceSnapshot * item.quantity)}
+                  </span>
                 </div>
-                <span className="font-bold text-primary font-serif">
-                  {formatPrice(item.subtotal || item.priceSnapshot * item.quantity)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

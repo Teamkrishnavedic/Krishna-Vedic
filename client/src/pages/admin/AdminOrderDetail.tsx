@@ -144,16 +144,57 @@ export default function AdminOrderDetail() {
           </div>
           <div className="divide-y divide-outline-variant/20">
             {order.items?.map((item: any) => {
-              const itemImg = item.product?.images?.[0]?.url || item.product?.images?.[0] || 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
+              const prod = item.product || item.variant?.product;
+              const firstImg = prod?.images?.[0];
+              const rawImg = typeof firstImg === 'string' ? firstImg : (firstImg?.url || '');
+
+              const getItemFallbackImage = (name: string) => {
+                const lower = (name || '').toLowerCase();
+                if (lower.includes('castor') || lower.includes('arandi')) {
+                  return 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('mustard') || lower.includes('sarson')) {
+                  return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('sesame') || lower.includes('til')) {
+                  return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('coconut') || lower.includes('nariyal')) {
+                  return 'https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('ghee') || lower.includes('bilona')) {
+                  return 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('groundnut') || lower.includes('peanut') || lower.includes('moongfali')) {
+                  return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('flaxseed') || lower.includes('alsi')) {
+                  return 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('turmeric') || lower.includes('haldi')) {
+                  return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('chilli') || lower.includes('mirch')) {
+                  return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80';
+                }
+                if (lower.includes('coriander') || lower.includes('dhaniya')) {
+                  return 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?auto=format&fit=crop&w=300&q=80';
+                }
+                return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
+              };
+
+              const fallbackImg = getItemFallbackImage(item.productName);
+              const itemImg = rawImg || fallbackImg;
+
               return (
                 <div key={item.id} className="p-4 flex items-center justify-between gap-4 text-xs">
                   <div className="flex items-center gap-3">
                     <img
-                      src={typeof itemImg === 'string' ? itemImg : (itemImg?.url || '')}
+                      src={itemImg}
                       alt={item.productName}
                       className="w-12 h-12 rounded-xl object-cover border border-outline-variant/30 bg-surface-container shrink-0"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=300&q=80';
+                        (e.target as HTMLImageElement).src = fallbackImg;
                       }}
                     />
                     <div>
