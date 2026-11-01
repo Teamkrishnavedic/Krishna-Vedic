@@ -51,11 +51,29 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", 'https://checkout.razorpay.com'],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com', 'https://images.unsplash.com'],
-        connectSrc: ["'self'", 'https://api.razorpay.com', 'https://res.cloudinary.com'],
-        frameSrc: ['https://api.razorpay.com'],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'https://checkout.razorpay.com',
+          'https://accounts.google.com/gsi/client',
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: [
+          "'self'",
+          'data:',
+          'blob:',
+          'https://res.cloudinary.com',
+          'https://images.unsplash.com',
+          'https://*.googleusercontent.com',
+        ],
+        connectSrc: [
+          "'self'",
+          'https://api.razorpay.com',
+          'https://res.cloudinary.com',
+          'https://accounts.google.com/gsi/',
+        ],
+        frameSrc: ['https://api.razorpay.com', 'https://accounts.google.com'],
         objectSrc: ["'none'"],
         upgradeInsecureRequests: isProduction ? [] : null,
       },
@@ -93,9 +111,17 @@ app.use(
         return callback(null, true);
       }
 
-      // Allow Vercel preview and production deployment domains
+      // Allow only your project's Vercel preview and production deployment domains
       if (origin.endsWith('.vercel.app')) {
-        return callback(null, true);
+        try {
+          const parsed = new URL(origin);
+          const host = parsed.hostname.toLowerCase();
+          if (host === 'krishna-vedic.vercel.app' || host.startsWith('krishna-vedic-')) {
+            return callback(null, true);
+          }
+        } catch {
+          // ignore invalid origin
+        }
       }
 
       // In development only, allow local hosts and dev tunnels
@@ -188,15 +214,17 @@ app.use('/api/settings', settingsRoutes);
 
 // Root status handler
 app.get('/', (_req, res) => {
+  if (isProduction) {
+    return res.json({
+      service: 'Krishnavedic API Server',
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+    });
+  }
   res.json({
     service: 'Krishnavedic API Server',
     status: 'running',
-    message: 'The backend API server is running normally. To view the website or admin panel, visit the frontend at http://localhost:5173',
-    links: {
-      frontend: 'http://localhost:5173',
-      adminLogin: 'http://localhost:5173/admin/login',
-      healthCheck: '/api/health',
-    },
+    message: 'The backend API server is running normally.',
   });
 });
 
