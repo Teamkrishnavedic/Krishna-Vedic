@@ -81,7 +81,7 @@ export default function App() {
                 <Route element={<StorefrontLayout />}>
                   <Route index element={<HomePage />} />
                   <Route path="shop" element={<ShopPage />} />
-                  <Route path="shop/:category" element={<CategoryPage />} />
+                  <Route path="shop/:category" element={<ShopPage />} />
                   <Route path="categories" element={<CategoriesPage />} />
                   <Route path="products" element={<CategoriesPage />} />
                   <Route path="products/:slug" element={<ProductPage />} />

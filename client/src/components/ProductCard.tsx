@@ -22,7 +22,8 @@ interface Product {
   slug: string;
   shortDescription?: string;
   description?: string;
-  category?: { name: string; slug: string };
+  category?: { name: string; slug: string; id?: string };
+  categoryId?: string;
   images: any[];
   variants?: Variant[];
   unitsSold?: number;
@@ -32,6 +33,72 @@ interface ProductCardProps {
   product: Product;
   onAddToCart?: (variantId: string, quantity: number) => void;
 }
+
+// Reliable artisanal fallback images mapped by category & botanical keywords
+export const getFallbackImage = (rawName: string) => {
+  const name = (rawName || '').toLowerCase();
+  if (name.includes('castor') || name.includes('arandi')) {
+    return 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('almond') || name.includes('badam')) {
+    return 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('flax') || name.includes('alsi')) {
+    return 'https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('coconut') || name.includes('nariyal')) {
+    return 'https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('mustard') || name.includes('sarson')) {
+    return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('sesame') || name.includes('til')) {
+    return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('groundnut') || name.includes('peanut') || name.includes('moongfali')) {
+    return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('ghee') || name.includes('bilona')) {
+    return 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('honey') || name.includes('madhu')) {
+    return 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('wheat') || name.includes('atta') || name.includes('flour') || name.includes('gehun')) {
+    return 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('bajra') || name.includes('millet') || name.includes('grain')) {
+    return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('khal') || name.includes('cake')) {
+    return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('turmeric') || name.includes('haldi')) {
+    return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('chilli') || name.includes('mirch')) {
+    return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('coriander') || name.includes('dhaniya')) {
+    return 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('pepper') || name.includes('laung') || name.includes('clove') || name.includes('cinnamon')) {
+    return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('saffron') || name.includes('kesar')) {
+    return 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('cardamom') || name.includes('elaichi')) {
+    return 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('garam masala') || name.includes('biryani') || name.includes('curry') || name.includes('sambhar')) {
+    return 'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80';
+  }
+  if (name.includes('chest') || name.includes('box') || name.includes('hamper')) {
+    return 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=800&q=80';
+  }
+  return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+};
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const variants = product.variants || [];
@@ -60,60 +127,29 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const currentPrice = currentVariant ? currentVariant.price : 0;
   const isPricePending = currentPrice <= 0;
   const compareAtPrice = currentVariant?.compareAtPrice;
-  const isOutOfStock = isPricePending || (currentVariant
-    ? (currentVariant.stock ?? currentVariant.inventoryQty ?? 1) <= 0
-    : false);
+  const isOutOfStock =
+    isPricePending ||
+    (currentVariant
+      ? (currentVariant.stock ?? currentVariant.inventoryQty ?? 1) <= 0
+      : false);
 
-  // Safe image URL resolver with authentic artisanal fallbacks
+  // Safe image URL resolver with fallback protection
   const getImageUrl = () => {
     const first = product.images?.[0];
-    if (typeof first === 'string' && first.startsWith('http')) return first;
-    if (typeof first === 'object' && first?.url) return first.url;
-
-    const name = product.name.toLowerCase();
-    if (name.includes('mustard') || name.includes('sarson')) {
-      return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+    if (typeof first === 'string' && first.trim().startsWith('http')) return first.trim();
+    if (
+      typeof first === 'object' &&
+      first?.url &&
+      typeof first.url === 'string' &&
+      first.url.trim().startsWith('http')
+    ) {
+      return first.url.trim();
     }
-    if (name.includes('sesame') || name.includes('til')) {
-      return 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('coconut') || name.includes('nariyal')) {
-      return 'https://images.unsplash.com/photo-1526947425960-945c6e72858f?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('ghee') || name.includes('bilona')) {
-      return 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('groundnut') || name.includes('peanut')) {
-      return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('turmeric') || name.includes('haldi')) {
-      return 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('chilli') || name.includes('mirch')) {
-      return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('coriander') || name.includes('dhaniya')) {
-      return 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('pepper') || name.includes('laung') || name.includes('clove') || name.includes('cinnamon')) {
-      return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('saffron') || name.includes('kesar')) {
-      return 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('cardamom') || name.includes('elaichi')) {
-      return 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('garam masala') || name.includes('biryani') || name.includes('curry') || name.includes('sambhar')) {
-      return 'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&w=800&q=80';
-    }
-    if (name.includes('chest') || name.includes('box') || name.includes('hamper')) {
-      return 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=800&q=80';
-    }
-    return 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+    return getFallbackImage(product.name);
   };
 
   const imageUrl = getImageUrl();
+  const fallbackUrl = getFallbackImage(product.name);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -129,10 +165,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     <article
       onMouseEnter={handlePrefetch}
       onTouchStart={handlePrefetch}
-      className="group bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418]/40 hover:shadow-md transition-all duration-300"
+      className="group bg-[#fafbf5] flex flex-col rounded-2xl overflow-hidden border border-[#e5e2da] hover:border-[#6e3418]/40 hover:shadow-md transition-all duration-300 h-full"
     >
-      {/* ─── 1. Product Image: 1:1 Square, Clean & Spacious ─────────── */}
-      <div className="relative aspect-square w-full overflow-hidden bg-[#f4f4ec]">
+      {/* ─── 1. Product Image: Guaranteed 1:1 Aspect Ratio, Never Collapses ─── */}
+      <div className="relative aspect-square w-full shrink-0 min-h-[190px] sm:min-h-[220px] overflow-hidden bg-[#f4f4ec]">
         <Link to={`/products/${product.slug}`} className="block w-full h-full">
           <img
             src={imageUrl}
@@ -140,8 +176,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80';
+              const target = e.target as HTMLImageElement;
+              if (target.src !== fallbackUrl) {
+                target.src = fallbackUrl;
+              }
             }}
           />
         </Link>
@@ -163,14 +201,12 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div>
           {/* Category subtitle */}
           <p className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-[#7d7567] truncate">
-            {product.category?.name || 'Artisan Pantry'}
+            {product.category?.name || 'Cold-Pressed Pantry'}
           </p>
 
           {/* Product Title: 2 lines max, legible, never awkwardly truncated */}
           <h3 className="font-serif text-sm sm:text-base font-bold text-[#2d2a26] group-hover:text-[#6e3418] transition-colors leading-snug line-clamp-2 mt-1 min-h-[2.5rem]">
-            <Link to={`/products/${product.slug}`}>
-              {product.name}
-            </Link>
+            <Link to={`/products/${product.slug}`}>{product.name}</Link>
           </h3>
         </div>
 
