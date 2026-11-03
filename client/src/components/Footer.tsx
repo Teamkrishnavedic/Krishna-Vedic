@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MessageCircle, MapPin } from 'lucide-react';
+import { Phone, Mail, MessageCircle, MapPin, Heart } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 import BrandLogo from '@/components/BrandLogo';
@@ -194,8 +194,25 @@ export default function Footer() {
               256-Bit SSL Secured
             </span>
           </div>
-          <div className="text-center md:text-right text-xs">
-            © 2026 Krishna Vedic Heritage Foods Pvt Ltd. Crafted with reverence.
+          <div className="flex flex-col items-center md:items-end gap-1.5 text-center md:text-right text-xs">
+            <span>© 2026 Krishna Vedic Heritage Foods Pvt Ltd. Crafted with reverence.</span>
+            <span className="text-[11px] text-outline flex items-center justify-center md:justify-end gap-1">
+              Made with{' '}
+              <Heart className="w-3 h-3 text-red-600 fill-red-600 inline-block animate-pulse shrink-0" aria-label="love" />{' '}
+              by{' '}
+              <a
+                href="https://portfolio-omega-six-88.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:text-secondary underline underline-offset-2 transition-colors inline-flex items-center gap-0.5 group"
+                title="Ayush Choudhary | Full-Stack Developer &amp; Cybersecurity Student"
+              >
+                <span>Ayush Choudhary</span>
+                <span className="material-symbols-outlined text-[11px] no-underline group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+                  north_east
+                </span>
+              </a>
+            </span>
           </div>
         </div>
       </div>
