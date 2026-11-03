@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
+import { ShieldCheck, Lock } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
@@ -82,14 +83,30 @@ export default function RegisterPage() {
           )}
         </div>
 
-        <div className="pt-4 border-t border-outline-variant/30 text-[11px] text-outline space-y-1">
-          <p>By creating an account, you agree to our terms of service and harvest purity commitments.</p>
+        <div className="pt-4 border-t border-outline-variant/30 text-xs text-on-surface-variant leading-relaxed text-left space-y-2">
+          <p className="text-[11px] text-outline">
+            By registering, you confirm you are 18+ years of age and consent to the collection of your name and email to manage orders in accordance with the{' '}
+            <Link to="/privacy" target="_blank" className="text-secondary underline font-semibold hover:text-primary">
+              DPDP Act 2023 Privacy Policy
+            </Link>{' '}
+            and agree to our{' '}
+            <Link to="/terms" target="_blank" className="text-secondary underline font-semibold hover:text-primary">
+              Terms &amp; Conditions
+            </Link>
+            .
+          </p>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-center gap-2 text-xs text-on-surface-variant">
-        <span className="material-symbols-outlined text-sm text-secondary">verified_user</span>
-        <span>Verified Google identity • Safe &amp; passwordless</span>
+      <div className="mt-6 flex flex-col items-center gap-1.5 text-xs text-on-surface-variant">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-secondary" />
+          <span>Verified Google Identity • Passwordless Authentication</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-outline">
+          <Lock className="w-3.5 h-3.5 text-primary" />
+          <span>256-Bit SSL Secured &amp; Indian DPDP Act Compliant</span>
+        </div>
       </div>
     </div>
   );

@@ -4,12 +4,14 @@ import { STORE_CONFIG } from '@/lib/storeConfig';
 
 export interface StoreSettings {
   storeName: string;
+  brandName: string;
   supportEmail: string;
   supportPhone: string;
   whatsappDigits: string;
   millAddress: string;
   announcementText: string;
   freeShippingThreshold: string;
+  fssaiNumber: string;
   getWhatsappUrl: (message?: string) => string;
 }
 
@@ -41,6 +43,7 @@ export function useStoreSettings(): StoreSettings {
 
   return {
     storeName: settings.store_name || STORE_CONFIG.name,
+    brandName: settings.store_name || STORE_CONFIG.name,
     supportEmail: settings.support_email || STORE_CONFIG.email,
     supportPhone: storePhone,
     whatsappDigits,
@@ -48,6 +51,7 @@ export function useStoreSettings(): StoreSettings {
     announcementText:
       settings.announcement_text || 'अब खाएंगे दादी-दादी के ज़माने का तेल और मसाले',
     freeShippingThreshold: settings.free_shipping_threshold || '799',
+    fssaiNumber: settings.fssai_license || STORE_CONFIG.fssaiLicense,
     getWhatsappUrl,
   };
 }

@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import CookieBanner from '@/components/CookieBanner';
 import { useCart } from '@/context/CartContext';
 import api from '@/lib/api';
 
@@ -52,6 +53,9 @@ export default function StorefrontLayout() {
       <AnimatePresence>
         {isOpen && <CartDrawer onClose={closeCart} />}
       </AnimatePresence>
+
+      {/* DPDP Act Compliant Cookie Notice */}
+      <CookieBanner />
     </div>
   );
 }

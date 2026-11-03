@@ -19,6 +19,7 @@ export default function CheckoutPage() {
   const [useNewAddress, setUseNewAddress] = useState(false);
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasAgreedConsent, setHasAgreedConsent] = useState(false);
 
   // New Address form state
   const [newAddress, setNewAddress] = useState({
@@ -74,6 +75,15 @@ export default function CheckoutPage() {
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (!hasAgreedConsent) {
+      toast({
+        title: 'Statutory Consent Required',
+        description: 'Please accept the Terms of Service and Privacy Policy data processing agreement to place your order.',
+        variant: 'error',
+      });
+      return;
+    }
 
     if (useNewAddress || !selectedAddressId) {
       if (!newAddress.fullName.trim() || newAddress.fullName.trim().length < 2) {
@@ -459,6 +469,49 @@ export default function CheckoutPage() {
               </span>
             </div>
 
+            {/* DPDP Act 2023 Statutory Consent & Terms Agreement */}
+            <div className="pt-2">
+              <label className="flex items-start gap-3 p-3.5 bg-surface rounded-lg border border-outline-variant/60 cursor-pointer hover:border-primary transition-colors text-xs text-on-surface-variant leading-relaxed">
+                <input
+                  type="checkbox"
+                  checked={hasAgreedConsent}
+                  onChange={(e) => setHasAgreedConsent(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded accent-primary border-outline-variant shrink-0 cursor-pointer"
+                  required
+                />
+                <span>
+                  I have read and agree to the{' '}
+                  <Link
+                    to="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary underline font-semibold hover:text-primary"
+                  >
+                    Terms of Service
+                  </Link>
+                  ,{' '}
+                  <Link
+                    to="/returns"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary underline font-semibold hover:text-primary"
+                  >
+                    Returns &amp; Refund Policy
+                  </Link>
+                  , and explicitly consent to the collection and processing of my contact and address details under the{' '}
+                  <Link
+                    to="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-secondary underline font-semibold hover:text-primary"
+                  >
+                    Privacy Policy (DPDP Act, 2023)
+                  </Link>{' '}
+                  for order dispatch, courier handover, and statutory tax invoicing.
+                </span>
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -466,6 +519,11 @@ export default function CheckoutPage() {
             >
               {isSubmitting ? 'Placing Order...' : 'Confirm & Place Order'}
             </button>
+
+            <div className="flex items-center justify-center gap-2 text-[11px] text-outline pt-1 pb-1">
+              <span className="material-symbols-outlined text-sm text-secondary">lock</span>
+              <span>256-Bit SSL / TLS 1.3 Encrypted Checkout</span>
+            </div>
 
             <div className="space-y-2 pt-2 text-xs text-on-surface-variant">
               <div className="flex items-center gap-2">

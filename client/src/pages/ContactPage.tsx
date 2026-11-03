@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, MessageCircle, CheckCircle2, Send } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, MessageCircle, CheckCircle2, Send, Navigation, ExternalLink } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 import { STORE_CONFIG } from '@/lib/storeConfig';
@@ -74,6 +74,16 @@ export default function ContactPage() {
                 <p className="text-xs text-[#52443c] mt-1 leading-relaxed">
                   {millAddress}
                 </p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(millAddress)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#6e3418] font-bold hover:underline mt-2.5 transition-colors"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>Get Directions in Google Maps</span>
+                  <ExternalLink className="w-3 h-3 opacity-70" />
+                </a>
               </div>
             </div>
 
@@ -200,6 +210,61 @@ export default function ContactPage() {
             </form>
           )}
         </div>
+      </div>
+
+      {/* ─── Interactive Google Map & Directions ─── */}
+      <div className="mt-12 bg-[#fafbf5] rounded-3xl border border-[#e5e2da] p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#e5e2da]">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#6e3418]">
+              <MapPin className="w-4 h-4" />
+              <span>Physical Store Location</span>
+            </div>
+            <h2 className="font-serif text-2xl font-bold text-[#2d2a26] mt-1">
+              Visit Our Ghani Mill &amp; Store
+            </h2>
+            <p className="text-xs text-[#52443c] mt-0.5 leading-relaxed max-w-xl">
+              {millAddress}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(millAddress)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-[#6e3418] hover:bg-[#522510] text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+            >
+              <Navigation className="w-4 h-4" />
+              <span>Get Directions</span>
+              <ExternalLink className="w-3 h-3 opacity-70" />
+            </a>
+            <a
+              href={`tel:${supportPhone}`}
+              className="border border-[#6e3418] text-[#6e3418] hover:bg-[#6e3418] hover:text-white px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+            >
+              <Phone className="w-4 h-4" />
+              <span>Call Mill</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Embedded Interactive Google Map */}
+        <div className="relative w-full h-80 sm:h-[420px] rounded-2xl overflow-hidden border border-[#e5e2da] shadow-inner bg-[#f4f4ec]">
+          <iframe
+            title="Krishna Vedic Store Google Map Location"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://maps.google.com/maps?q=${encodeURIComponent(millAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+          />
+        </div>
+        <p className="text-[11px] text-[#7d7567] mt-3 text-center sm:text-left flex items-center justify-center sm:justify-start gap-1">
+          <MapPin className="w-3.5 h-3.5 text-[#6e3418]" />
+          <span>Click "View larger map" or "Get Directions" to start live GPS turn-by-turn navigation on your mobile phone.</span>
+        </p>
       </div>
     </div>
   );

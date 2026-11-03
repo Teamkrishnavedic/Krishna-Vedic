@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -88,7 +88,17 @@ export default function LoginPage() {
         </div>
 
         <div className="pt-4 border-t border-outline-variant/30 text-[11px] text-outline space-y-1">
-          <p>By signing in, you agree to Krishna Vedic's terms of service and privacy policy.</p>
+          <p>
+            By signing in, you agree to Krishna Vedic&apos;s{' '}
+            <Link to="/terms" target="_blank" className="text-secondary underline font-semibold hover:text-primary">
+              Terms of Service
+            </Link>{' '}
+            and acknowledge the{' '}
+            <Link to="/privacy" target="_blank" className="text-secondary underline font-semibold hover:text-primary">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
 

@@ -91,6 +91,8 @@ export default function App() {
                   <Route path="contact" element={<ContactPage />} />
                   <Route path="shipping" element={<ShippingPage />} />
                   <Route path="privacy" element={<PrivacyPage />} />
+                  <Route path="cookies" element={<PrivacyPage />} />
+                  <Route path="cookie-policy" element={<PrivacyPage />} />
                   <Route path="terms" element={<TermsPage />} />
                   <Route path="returns" element={<ReturnsPage />} />
                   <Route path="login" element={<LoginPage />} />

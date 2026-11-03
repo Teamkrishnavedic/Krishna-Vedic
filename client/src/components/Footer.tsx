@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MessageCircle } from 'lucide-react';
+import { Phone, Mail, MessageCircle, MapPin } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 import BrandLogo from '@/components/BrandLogo';
@@ -31,8 +31,8 @@ export default function Footer() {
             <Link to="/" className="inline-block">
               <BrandLogo size="lg" />
             </Link>
-            <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-              Reviving sacred Vedic nutrition through slow, wood-pressed kachi ghani extraction and heritage stone-chakkis. Handcrafted purity direct from ancestral farming guilds across Rajasthan, Deccan, and Malabar.
+            <p className="font-body-md text-body-md text-on-surface-variant max-w-md leading-relaxed">
+              Pure, authentic wood-pressed kachi ghani oils and freshly stone-ground spices. Crafted using traditional cold-press extraction with zero chemicals, preservatives, or artificial refining — delivered fresh from our mill in Rajasthan.
             </p>
             <div className="pt-space-xs">
               <span className="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold block mb-2">
@@ -60,53 +60,61 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Shop Guild Column */}
+          {/* Shop Categories Column */}
           <div className="space-y-space-sm">
             <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-              Shop Guild
+              Shop Categories
             </h3>
             <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Cold-Pressed Sesame (Til)</Link>
+                <Link to="/shop/cold-pressed-oils">Wood-Pressed Oils</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Wood-Pressed Mustard Oil</Link>
+                <Link to="/shop/spices-masalas">Stone-Pounded Spices</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Single-Origin Virgin Coconut</Link>
+                <Link to="/shop/flour-atta">Stone-Ground Atta &amp; Flours</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Salem High-Curcumin Turmeric</Link>
+                <Link to="/shop/ghee-honey-other-products">Desi Cow Ghee &amp; Honey</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Malabar Black Peppercorn</Link>
+                <Link to="/shop/whole-grains-cereals">Traditional Whole Grains</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shop">Pounded Garam Masala</Link>
+                <Link to="/shop/oil-cakes-khal">Pure Oil Cakes (Khal)</Link>
+              </li>
+              <li className="hover:text-primary transition-colors pt-1">
+                <Link to="/shop" className="font-semibold text-primary underline underline-offset-4">
+                  Browse All Harvest →
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Heritage & Proof Column */}
+          {/* About & Policies Column */}
           <div className="space-y-space-sm">
             <h3 className="font-label-lg text-label-lg uppercase tracking-wider text-primary font-bold">
-              Heritage &amp; Proof
+              About &amp; Policies
             </h3>
             <ul className="space-y-2.5 font-body-sm text-body-sm text-on-surface-variant">
               <li className="hover:text-primary transition-colors">
-                <Link to="/about">The Ghani Wood-Press Ethos</Link>
+                <Link to="/about">Our Story &amp; Ghani Ethos</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/about">FSSAI &amp; Lab Batch Assays</Link>
+                <Link to="/contact">Visit Our Ghani Mill</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/about">Farmer Guild Partnerships</Link>
+                <Link to="/shipping">Shipping Across Bharat</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/about">Seasonal Ayurvedic Pairings</Link>
+                <Link to="/returns">Returns &amp; Replacement Policy</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/about">Heritage Journal Articles</Link>
+                <Link to="/privacy">Privacy Policy</Link>
+              </li>
+              <li className="hover:text-primary transition-colors">
+                <Link to="/terms">Terms &amp; Conditions</Link>
               </li>
             </ul>
           </div>
@@ -138,13 +146,29 @@ export default function Footer() {
                 </a>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/shipping">Shipping Across Bharat</Link>
+                <Link to="/account/orders">Track My Orders</Link>
               </li>
               <li className="hover:text-primary transition-colors">
-                <Link to="/returns">Returns &amp; Replacement</Link>
+                <Link to="/contact">Contact Helpdesk</Link>
               </li>
-              <li className="text-[11px] text-outline pt-1 leading-snug">
-                {millAddress}
+              <li className="pt-2 border-t border-outline-variant/30">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(millAddress)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors flex items-start gap-1.5 group text-xs text-on-surface-variant"
+                  title="Open location in Google Maps"
+                >
+                  <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-secondary group-hover:text-primary transition-colors" />
+                  <div>
+                    <span className="block font-medium text-on-surface group-hover:text-primary transition-colors">
+                      Mill &amp; Store (Jaipur, RJ)
+                    </span>
+                    <span className="text-[11px] text-primary font-semibold underline underline-offset-2">
+                      View on Google Maps →
+                    </span>
+                  </div>
+                </a>
               </li>
             </ul>
           </div>
@@ -164,6 +188,10 @@ export default function Footer() {
             <span className="flex items-center gap-1.5 font-label-md text-label-md">
               <span className="material-symbols-outlined text-secondary text-sm">verified</span>
               NABL Lab Tested
+            </span>
+            <span className="flex items-center gap-1.5 font-label-md text-label-md text-primary font-medium">
+              <span className="material-symbols-outlined text-secondary text-sm">lock</span>
+              256-Bit SSL Secured
             </span>
           </div>
           <div className="text-center md:text-right text-xs">
